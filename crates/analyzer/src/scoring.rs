@@ -6,9 +6,11 @@ use xcprobe_bundle_schema::Manifest;
 /// Score for a process or service.
 #[derive(Debug, Clone)]
 pub struct ProcessScore {
+    #[allow(dead_code)]
     pub pid: u32,
     pub name: String,
     pub score: f64,
+    #[allow(dead_code)]
     pub reasons: Vec<String>,
     pub is_business_process: bool,
 }
@@ -116,6 +118,7 @@ pub fn score_processes(manifest: &Manifest) -> HashMap<u32, ProcessScore> {
 }
 
 /// Score services for business relevance.
+#[allow(dead_code)]
 pub fn score_services(manifest: &Manifest) -> HashMap<String, f64> {
     let mut scores = HashMap::new();
 

@@ -90,7 +90,7 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
     // Create user if service runs as non-root
     if let Some(user) = cluster.services.first().and_then(|s| s.user.clone()) {
         if user != "root" {
-            dockerfile.push_str(&format!("# Create application user\n"));
+            dockerfile.push_str("# Create application user\n");
             dockerfile.push_str(&format!(
                 "RUN adduser --disabled-password --gecos '' {} || true\n",
                 user
@@ -105,7 +105,7 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
         for port in &cluster.ports {
             dockerfile.push_str(&format!("EXPOSE {}\n", port.port));
         }
-        dockerfile.push_str("\n");
+        dockerfile.push('\n');
     }
 
     // Environment variables (placeholders only)
@@ -123,7 +123,7 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
                 ));
             }
         }
-        dockerfile.push_str("\n");
+        dockerfile.push('\n');
     }
 
     // Healthcheck
@@ -202,7 +202,7 @@ pub fn generate_entrypoint(cluster: &AppCluster) -> Result<String> {
                 ));
             }
         }
-        script.push_str("\n");
+        script.push('\n');
     }
 
     // Wait for dependencies
@@ -231,7 +231,7 @@ pub fn generate_entrypoint(cluster: &AppCluster) -> Result<String> {
         for dep in &cluster.depends_on {
             script.push_str(&format!("# wait_for_port {} <port>\n", dep));
         }
-        script.push_str("\n");
+        script.push('\n');
     }
 
     // Execute command
@@ -247,7 +247,7 @@ pub fn generate_config_template(config: &ConfigFileSpec) -> Result<String> {
 
     template.push_str("# Auto-generated template from ");
     template.push_str(&config.source_path);
-    template.push_str("\n");
+    template.push('\n');
     template.push_str("#\n");
     template.push_str("# Template variables:\n");
     for var in &config.template_vars {
@@ -281,7 +281,7 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
         "- **Confidence**: {:.0}%\n",
         cluster.confidence * 100.0
     ));
-    readme.push_str("\n");
+    readme.push('\n');
 
     // Services
     if !cluster.services.is_empty() {
@@ -295,7 +295,7 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
                 readme.push_str(&format!("  - User: `{}`\n", user));
             }
         }
-        readme.push_str("\n");
+        readme.push('\n');
     }
 
     // Ports
@@ -310,7 +310,7 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
                 port.port, port.protocol, purpose
             ));
         }
-        readme.push_str("\n");
+        readme.push('\n');
     }
 
     // Environment Variables
@@ -327,7 +327,7 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
                 env.name, required, sensitive, desc
             ));
         }
-        readme.push_str("\n");
+        readme.push('\n');
     }
 
     // Config Files
@@ -341,9 +341,9 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
             if config.templated {
                 readme.push_str(" (templated)");
             }
-            readme.push_str("\n");
+            readme.push('\n');
         }
-        readme.push_str("\n");
+        readme.push('\n');
     }
 
     // Dependencies
@@ -354,24 +354,24 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
             for dep in &cluster.depends_on {
                 readme.push_str(&format!("- {}\n", dep));
             }
-            readme.push_str("\n");
+            readme.push('\n');
         }
         if !cluster.external_deps.is_empty() {
             readme.push_str("### External Dependencies\n\n");
             for dep in &cluster.external_deps {
                 readme.push_str(&format!("- {}\n", dep));
             }
-            readme.push_str("\n");
+            readme.push('\n');
         }
     }
 
     // Build & Run
     readme.push_str("## Build & Run\n\n");
     readme.push_str("```bash\n");
-    readme.push_str(&format!("# Build the image\n"));
+    readme.push_str("# Build the image\n");
     readme.push_str(&format!("docker build -t {} .\n\n", cluster.name));
-    readme.push_str(&format!("# Run the container\n"));
-    readme.push_str(&format!("docker run -d"));
+    readme.push_str("# Run the container\n");
+    readme.push_str("docker run -d");
     for port in &cluster.ports {
         readme.push_str(&format!(" -p {}:{}", port.port, port.port));
     }
@@ -408,9 +408,9 @@ pub fn generate_compose(plan: &PackPlan) -> Result<String> {
 
     for cluster in &plan.clusters {
         compose.push_str(&format!("  {}:\n", cluster.id));
-        compose.push_str(&format!("    build:\n"));
+        compose.push_str("    build:\n");
         compose.push_str(&format!("      context: ./{}\n", cluster.id));
-        compose.push_str(&format!("      dockerfile: Dockerfile\n"));
+        compose.push_str("      dockerfile: Dockerfile\n");
 
         // Ports
         if !cluster.ports.is_empty() {
@@ -456,7 +456,7 @@ pub fn generate_compose(plan: &PackPlan) -> Result<String> {
             compose.push_str("      retries: 3\n");
         }
 
-        compose.push_str("\n");
+        compose.push('\n');
     }
 
     Ok(compose)

@@ -47,8 +47,7 @@ pub fn cluster_applications(
         let cluster_name = service
             .name
             .trim_end_matches(".service")
-            .replace('.', "-")
-            .replace('_', "-");
+            .replace(['.', '_'], "-");
 
         let mut cluster = AppCluster {
             id: format!("{}-{}", prefix, cluster_id),
@@ -129,12 +128,12 @@ pub fn cluster_applications(
         }
 
         // Extract environment variables from service
-        for (name, _value) in &service.environment {
+        for name in service.environment.keys() {
             let sensitive = xcprobe_redaction::patterns::is_sensitive_key(name);
             cluster.env_vars.push(EnvVarSpec {
                 name: name.clone(),
                 required: true,
-                default_value: if sensitive { None } else { None }, // Don't include values
+                default_value: None, // Don't include values for security
                 description: None,
                 sensitive,
                 evidence_ref: service.evidence_ref.clone(),

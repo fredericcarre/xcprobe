@@ -28,7 +28,9 @@ pub struct DecisionConfidence {
 pub struct ValidationResult {
     pub overall_confidence: f64,
     pub decisions_without_evidence: Vec<String>,
+    #[allow(dead_code)]
     pub total_decisions: usize,
+    #[allow(dead_code)]
     pub decisions_with_evidence: usize,
 }
 
