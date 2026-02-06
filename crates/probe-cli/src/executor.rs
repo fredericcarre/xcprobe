@@ -16,6 +16,7 @@ pub trait Executor: Send + Sync {
     async fn execute(&self, command: &str) -> Result<(Option<i32>, String, String)>;
 
     /// Check if the connection is still alive.
+    #[allow(dead_code)]
     fn is_connected(&self) -> bool;
 }
 

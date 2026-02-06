@@ -11,8 +11,10 @@ use xcprobe_common::OsType;
 /// Note: This is a simplified implementation. The full analyzer crate
 /// provides more sophisticated clustering and dependency detection.
 pub fn generate_pack_plan(bundle: &Bundle) -> Result<PackPlan> {
-    let mut plan = PackPlan::default();
-    plan.source_bundle_id = bundle.manifest.collection_id.clone();
+    let mut plan = PackPlan {
+        source_bundle_id: bundle.manifest.collection_id.clone(),
+        ..Default::default()
+    };
 
     // Collect file paths to pack
     let mut file_paths: Vec<ConfigFileSpec> = Vec::new();

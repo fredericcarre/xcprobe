@@ -238,9 +238,7 @@ impl CommandSet for WindowsCommands {
 
     fn journal_cmd(&self, _unit: &str, _since: &str) -> Option<String> {
         // Windows event log for Service Control Manager
-        Some(format!(
-            "Get-WinEvent -FilterHashtable @{{LogName='System'; ProviderName='Service Control Manager'; StartTime=(Get-Date).AddHours(-1)}} -MaxEvents 100 -ErrorAction SilentlyContinue | Select-Object TimeCreated,Message | ConvertTo-Json -Depth 3"
-        ))
+        Some("Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Service Control Manager'; StartTime=(Get-Date).AddHours(-1)} -MaxEvents 100 -ErrorAction SilentlyContinue | Select-Object TimeCreated,Message | ConvertTo-Json -Depth 3".to_string())
     }
 }
 

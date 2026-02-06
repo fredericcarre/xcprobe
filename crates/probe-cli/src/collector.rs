@@ -48,6 +48,7 @@ pub struct CollectorConfig {
     pub winrm_user: Option<String>,
     pub winrm_password: Option<String>,
     pub winrm_https: bool,
+    #[allow(dead_code)]
     pub timeout_seconds: u64,
 }
 
@@ -73,8 +74,10 @@ impl Collector {
             self.config.target, self.config.os_type
         );
 
-        let mut manifest = Manifest::default();
-        manifest.collection_mode = format!("{:?}", self.config.mode).to_lowercase();
+        let mut manifest = Manifest {
+            collection_mode: format!("{:?}", self.config.mode).to_lowercase(),
+            ..Default::default()
+        };
 
         let mut audit_log = AuditLog::new();
         let mut evidence: HashMap<String, Evidence> = HashMap::new();
@@ -579,8 +582,10 @@ impl Collector {
 }
 
 struct ExecutionResult {
+    #[allow(dead_code)]
     exit_code: Option<i32>,
     stdout: String,
+    #[allow(dead_code)]
     stderr: String,
     evidence_ref: String,
 }
