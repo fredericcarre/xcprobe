@@ -47,19 +47,16 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
 
     // Step 1: Start docker-compose
     info!("Starting docker-compose...");
-    let compose_path = config.scenario_path.join("compose.yaml");
-    if !compose_path.exists() {
-        // Try docker-compose.yaml
-        let alt_path = config.scenario_path.join("docker-compose.yaml");
-        if !alt_path.exists() {
-            anyhow::bail!("No compose.yaml or docker-compose.yaml found in scenario");
-        }
-    }
+    let compose_file = if config.scenario_path.join("compose.yaml").exists() {
+        "compose.yaml"
+    } else if config.scenario_path.join("docker-compose.yaml").exists() {
+        "docker-compose.yaml"
+    } else {
+        anyhow::bail!("No compose.yaml or docker-compose.yaml found in scenario");
+    };
 
     let compose_up = Command::new("docker")
-        .args(["compose", "-f"])
-        .arg(&compose_path)
-        .args(["up", "-d"])
+        .args(["compose", "-f", compose_file, "up", "-d"])
         .current_dir(&config.scenario_path)
         .output()
         .context("Failed to run docker compose up")?;
@@ -125,9 +122,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     if !config.keep_running {
         info!("Stopping docker-compose...");
         let _ = Command::new("docker")
-            .args(["compose", "-f"])
-            .arg(&compose_path)
-            .args(["down", "-v"])
+            .args(["compose", "-f", compose_file, "down", "-v"])
             .current_dir(&config.scenario_path)
             .output();
     }
@@ -160,7 +155,11 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
 }
 
 async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf> {
-    let compose_path = scenario_path.join("compose.yaml");
+    let compose_file = if scenario_path.join("compose.yaml").exists() {
+        "compose.yaml"
+    } else {
+        "docker-compose.yaml"
+    };
 
     // Find probe-cli binary (should be in PATH or current directory)
     let probe_cli_path = which::which("probe-cli")
@@ -171,9 +170,7 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Copy probe-cli into the container
     let copy_binary = Command::new("docker")
-        .args(["compose", "-f"])
-        .arg(&compose_path)
-        .args(["cp"])
+        .args(["compose", "-f", compose_file, "cp"])
         .arg(&probe_cli_path)
         .arg("host-sim:/probe-cli")
         .current_dir(scenario_path)
@@ -187,9 +184,7 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Make it executable
     let chmod = Command::new("docker")
-        .args(["compose", "-f"])
-        .arg(&compose_path)
-        .args(["exec", "-T", "host-sim", "chmod", "+x", "/probe-cli"])
+        .args(["compose", "-f", compose_file, "exec", "-T", "host-sim", "chmod", "+x", "/probe-cli"])
         .current_dir(scenario_path)
         .output()
         .context("Failed to chmod probe-cli")?;
@@ -201,23 +196,9 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Run probe-cli inside the host-sim container
     let output = Command::new("docker")
-        .args(["compose", "-f"])
-        .arg(&compose_path)
-        .args([
-            "exec",
-            "-T",
-            "host-sim",
-            "/probe-cli",
-            "collect",
-            "--target",
-            "localhost",
-            "--os",
-            "linux",
-            "--mode",
-            "local-ephemeral",
-            "--out",
-            "/tmp/bundle.tgz",
-        ])
+        .args(["compose", "-f", compose_file, "exec", "-T", "host-sim",
+               "/probe-cli", "collect", "--target", "localhost", "--os", "linux",
+               "--mode", "local-ephemeral", "--out", "/tmp/bundle.tgz"])
         .current_dir(scenario_path)
         .output()
         .context("Failed to run probe-cli")?;
@@ -229,9 +210,7 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Copy bundle out of container
     let copy_output = Command::new("docker")
-        .args(["compose", "-f"])
-        .arg(&compose_path)
-        .args(["cp", "host-sim:/tmp/bundle.tgz"])
+        .args(["compose", "-f", compose_file, "cp", "host-sim:/tmp/bundle.tgz"])
         .arg(bundle_path)
         .current_dir(scenario_path)
         .output()
