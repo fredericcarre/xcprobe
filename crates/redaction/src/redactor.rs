@@ -67,7 +67,8 @@ impl RedactionStats {
         self.entropy_redactions += other.entropy_redactions;
         self.key_redactions += other.key_redactions;
         self.total_chars_redacted += other.total_chars_redacted;
-        self.matched_patterns.extend(other.matched_patterns.iter().cloned());
+        self.matched_patterns
+            .extend(other.matched_patterns.iter().cloned());
     }
 }
 
@@ -158,7 +159,12 @@ impl Redactor {
     }
 
     /// Apply pattern-based redaction.
-    fn apply_pattern_redaction(&self, content: &str, pattern: &Regex, stats: &mut RedactionStats) -> String {
+    fn apply_pattern_redaction(
+        &self,
+        content: &str,
+        pattern: &Regex,
+        stats: &mut RedactionStats,
+    ) -> String {
         let mut result = content.to_string();
         let mut offset: i64 = 0;
 
@@ -180,7 +186,11 @@ impl Redactor {
             result.replace_range(start..end, &replacement);
             offset += len_diff;
 
-            trace!("Redacted pattern match: {} -> {}", matched.len(), replacement.len());
+            trace!(
+                "Redacted pattern match: {} -> {}",
+                matched.len(),
+                replacement.len()
+            );
         }
 
         result
@@ -251,7 +261,10 @@ mod tests {
     fn test_redact_password_env_var() {
         let redactor = Redactor::new();
         let result = redactor.redact("DATABASE_PASSWORD=mysecret123");
-        assert!(result.content.contains(REDACTED_PLACEHOLDER) || !result.content.contains("mysecret123"));
+        assert!(
+            result.content.contains(REDACTED_PLACEHOLDER)
+                || !result.content.contains("mysecret123")
+        );
         assert!(result.stats.total() > 0);
     }
 
@@ -265,8 +278,11 @@ mod tests {
     #[test]
     fn test_redact_auth_header() {
         let redactor = Redactor::new();
-        let result = redactor.redact("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI");
-        assert!(!result.content.contains("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"));
+        let result =
+            redactor.redact("Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWI");
+        assert!(!result
+            .content
+            .contains("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"));
     }
 
     #[test]
@@ -301,7 +317,10 @@ mod tests {
     fn test_no_secret_passes_through() {
         let redactor = Redactor::new();
         let result = redactor.redact("This is a normal log message with no secrets");
-        assert_eq!(result.content, "This is a normal log message with no secrets");
+        assert_eq!(
+            result.content,
+            "This is a normal log message with no secrets"
+        );
         assert_eq!(result.stats.total(), 0);
     }
 

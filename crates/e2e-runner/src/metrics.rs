@@ -129,7 +129,8 @@ pub fn calculate_metrics(plan: &PackPlan, truth: &Truth) -> TestMetrics {
         .flat_map(|c| c.ports.iter().map(|p| p.port))
         .collect();
 
-    let (ports_recall, ports_precision) = calculate_recall_precision(&expected_ports, &actual_ports);
+    let (ports_recall, ports_precision) =
+        calculate_recall_precision(&expected_ports, &actual_ports);
     metrics.ports_recall = ports_recall;
     metrics.ports_precision = ports_precision;
 

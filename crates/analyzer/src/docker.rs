@@ -50,7 +50,10 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
         _ => "debian:bookworm-slim",
     };
 
-    dockerfile.push_str(&format!("# Auto-generated Dockerfile for {}\n", cluster.name));
+    dockerfile.push_str(&format!(
+        "# Auto-generated Dockerfile for {}\n",
+        cluster.name
+    ));
     dockerfile.push_str(&format!("# Confidence: {:.2}\n", cluster.confidence));
     dockerfile.push_str("#\n");
     dockerfile.push_str("# IMPORTANT: Review and adjust before production use.\n");
@@ -116,7 +119,10 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
                     dockerfile.push_str(&format!("ENV {}=\"{}\"\n", env_var.name, default));
                 }
             } else {
-                dockerfile.push_str(&format!("# ENV {} - sensitive, set at runtime\n", env_var.name));
+                dockerfile.push_str(&format!(
+                    "# ENV {} - sensitive, set at runtime\n",
+                    env_var.name
+                ));
             }
         }
         dockerfile.push_str("\n");
@@ -139,10 +145,7 @@ pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {
             }
             "tcp" => {
                 let port = readiness.port.unwrap_or(80);
-                dockerfile.push_str(&format!(
-                    "  CMD nc -z localhost {} || exit 1\n\n",
-                    port
-                ));
+                dockerfile.push_str(&format!("  CMD nc -z localhost {} || exit 1\n\n", port));
             }
             _ => {
                 dockerfile.push_str("  CMD exit 0\n\n");
@@ -276,7 +279,10 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
 
     readme.push_str("## Overview\n\n");
     readme.push_str(&format!("- **Type**: {}\n", cluster.app_type));
-    readme.push_str(&format!("- **Confidence**: {:.0}%\n", cluster.confidence * 100.0));
+    readme.push_str(&format!(
+        "- **Confidence**: {:.0}%\n",
+        cluster.confidence * 100.0
+    ));
     readme.push_str("\n");
 
     // Services
@@ -301,7 +307,10 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
         readme.push_str("|------|----------|--------|\n");
         for port in &cluster.ports {
             let purpose = port.purpose.as_deref().unwrap_or("Unknown");
-            readme.push_str(&format!("| {} | {} | {} |\n", port.port, port.protocol, purpose));
+            readme.push_str(&format!(
+                "| {} | {} | {} |\n",
+                port.port, port.protocol, purpose
+            ));
         }
         readme.push_str("\n");
     }
@@ -315,7 +324,10 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
             let required = if env.required { "Yes" } else { "No" };
             let sensitive = if env.sensitive { "Yes" } else { "No" };
             let desc = env.description.as_deref().unwrap_or("");
-            readme.push_str(&format!("| {} | {} | {} | {} |\n", env.name, required, sensitive, desc));
+            readme.push_str(&format!(
+                "| {} | {} | {} | {} |\n",
+                env.name, required, sensitive, desc
+            ));
         }
         readme.push_str("\n");
     }
@@ -324,7 +336,10 @@ pub fn generate_readme(cluster: &AppCluster) -> Result<String> {
     if !cluster.config_files.is_empty() {
         readme.push_str("## Configuration Files\n\n");
         for config in &cluster.config_files {
-            readme.push_str(&format!("- `{}` -> `{}`", config.source_path, config.container_path));
+            readme.push_str(&format!(
+                "- `{}` -> `{}`",
+                config.source_path, config.container_path
+            ));
             if config.templated {
                 readme.push_str(" (templated)");
             }
@@ -434,7 +449,10 @@ pub fn generate_compose(plan: &PackPlan) -> Result<String> {
         if !cluster.ports.is_empty() {
             let port = cluster.ports[0].port;
             compose.push_str("    healthcheck:\n");
-            compose.push_str(&format!("      test: [\"CMD\", \"nc\", \"-z\", \"localhost\", \"{}\"]\n", port));
+            compose.push_str(&format!(
+                "      test: [\"CMD\", \"nc\", \"-z\", \"localhost\", \"{}\"]\n",
+                port
+            ));
             compose.push_str("      interval: 10s\n");
             compose.push_str("      timeout: 5s\n");
             compose.push_str("      retries: 3\n");

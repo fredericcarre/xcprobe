@@ -57,7 +57,8 @@ fn parse_linux_processes(output: &str) -> Result<Vec<ProcessInfo>> {
 
 fn parse_windows_processes(output: &str) -> Result<Vec<ProcessInfo>> {
     // Windows output is JSON from PowerShell
-    let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
 
     let mut processes = Vec::new();
 
@@ -114,7 +115,8 @@ fn parse_linux_service_list(output: &str) -> Result<Vec<String>> {
 }
 
 fn parse_windows_service_list(output: &str) -> Result<Vec<String>> {
-    let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
 
     let mut services = Vec::new();
 
@@ -242,12 +244,15 @@ pub fn parse_systemd_unit(content: &str) -> UnitFileInfo {
         } else if line.starts_with("WorkingDirectory=") {
             info.working_directory = Some(line.trim_start_matches("WorkingDirectory=").to_string());
         } else if line.starts_with("EnvironmentFile=") {
-            let path = line.trim_start_matches("EnvironmentFile=").trim_start_matches('-');
+            let path = line
+                .trim_start_matches("EnvironmentFile=")
+                .trim_start_matches('-');
             info.environment_files.push(path.to_string());
         } else if line.starts_with("Environment=") {
             let env = line.trim_start_matches("Environment=");
             if let Some((key, value)) = env.split_once('=') {
-                info.environment.insert(key.to_string(), value.trim_matches('"').to_string());
+                info.environment
+                    .insert(key.to_string(), value.trim_matches('"').to_string());
             }
         }
     }
@@ -275,16 +280,28 @@ fn parse_linux_ports(output: &str) -> Result<Vec<PortInfo>> {
 
     for line in output.lines().skip(1) {
         if let Some(caps) = re.captures(line) {
-            let port: u16 = caps.name("port").and_then(|m| m.as_str().parse().ok()).unwrap_or(0);
+            let port: u16 = caps
+                .name("port")
+                .and_then(|m| m.as_str().parse().ok())
+                .unwrap_or(0);
             if port == 0 {
                 continue;
             }
 
             ports.push(PortInfo {
-                protocol: caps.name("proto").map(|m| m.as_str().to_string()).unwrap_or_default(),
-                local_address: caps.name("local").map(|m| m.as_str().to_string()).unwrap_or_default(),
+                protocol: caps
+                    .name("proto")
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or_default(),
+                local_address: caps
+                    .name("local")
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or_default(),
                 local_port: port,
-                state: caps.name("state").map(|m| m.as_str().to_string()).unwrap_or("LISTEN".to_string()),
+                state: caps
+                    .name("state")
+                    .map(|m| m.as_str().to_string())
+                    .unwrap_or("LISTEN".to_string()),
                 pid: caps.name("pid").and_then(|m| m.as_str().parse().ok()),
                 process_name: caps.name("name").map(|m| m.as_str().to_string()),
                 evidence_ref: None,
@@ -296,7 +313,8 @@ fn parse_linux_ports(output: &str) -> Result<Vec<PortInfo>> {
 }
 
 fn parse_windows_ports(output: &str) -> Result<Vec<PortInfo>> {
-    let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
 
     let mut ports = Vec::new();
 
@@ -376,7 +394,8 @@ fn parse_rpm_packages(output: &str) -> Result<Vec<Package>> {
 }
 
 fn parse_windows_packages(output: &str) -> Result<Vec<Package>> {
-    let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
 
     let mut packages = Vec::new();
 
@@ -428,7 +447,8 @@ fn parse_linux_scheduled_tasks(output: &str) -> Result<Vec<ScheduledTask>> {
 }
 
 fn parse_windows_scheduled_tasks(output: &str) -> Result<Vec<ScheduledTask>> {
-    let json: serde_json::Value = serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
 
     let mut tasks = Vec::new();
 
@@ -440,7 +460,10 @@ fn parse_windows_scheduled_tasks(output: &str) -> Result<Vec<ScheduledTask>> {
                 schedule: None,
                 command: None,
                 user: None,
-                enabled: item["State"].as_str().map(|s| s == "Ready").unwrap_or(false),
+                enabled: item["State"]
+                    .as_str()
+                    .map(|s| s == "Ready")
+                    .unwrap_or(false),
                 last_run: None,
                 next_run: None,
                 evidence_ref: None,
@@ -481,9 +504,15 @@ EnvironmentFile=/etc/default/myapp
 Environment=NODE_ENV=production
 "#;
         let info = parse_systemd_unit(content);
-        assert_eq!(info.exec_start, Some("/usr/bin/myapp --config /etc/myapp.conf".to_string()));
+        assert_eq!(
+            info.exec_start,
+            Some("/usr/bin/myapp --config /etc/myapp.conf".to_string())
+        );
         assert_eq!(info.working_directory, Some("/opt/myapp".to_string()));
         assert_eq!(info.environment_files, vec!["/etc/default/myapp"]);
-        assert_eq!(info.environment.get("NODE_ENV"), Some(&"production".to_string()));
+        assert_eq!(
+            info.environment.get("NODE_ENV"),
+            Some(&"production".to_string())
+        );
     }
 }

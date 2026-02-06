@@ -14,7 +14,11 @@ use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 #[derive(Parser)]
 #[command(name = "analyzer")]
-#[command(author, version, about = "Analyze collection bundles and generate Docker artifacts")]
+#[command(
+    author,
+    version,
+    about = "Analyze collection bundles and generate Docker artifacts"
+)]
 struct Cli {
     /// Enable verbose output
     #[arg(short, long, global = true)]
@@ -117,7 +121,10 @@ async fn main() -> Result<()> {
                 }
 
                 if strict {
-                    anyhow::bail!("Strict mode: {} decisions lack evidence", result.decisions_without_evidence.len());
+                    anyhow::bail!(
+                        "Strict mode: {} decisions lack evidence",
+                        result.decisions_without_evidence.len()
+                    );
                 }
             }
 
@@ -231,10 +238,7 @@ fn analyze_bundle(
     Ok(plan)
 }
 
-fn generate_artifacts(
-    plan: &xcprobe_bundle_schema::PackPlan,
-    output_dir: &PathBuf,
-) -> Result<()> {
+fn generate_artifacts(plan: &xcprobe_bundle_schema::PackPlan, output_dir: &PathBuf) -> Result<()> {
     for cluster in &plan.clusters {
         let cluster_dir = output_dir.join(&cluster.id);
         std::fs::create_dir_all(&cluster_dir)?;

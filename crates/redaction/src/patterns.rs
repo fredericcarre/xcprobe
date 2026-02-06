@@ -19,14 +19,12 @@ pub static CONNECTION_STRING_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 /// Pattern for database URLs with credentials.
-pub static DB_URL_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)[a-z]+://[^:]+:[^@]+@[^\s]+").unwrap()
-});
+pub static DB_URL_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)[a-z]+://[^:]+:[^@]+@[^\s]+").unwrap());
 
 /// Pattern for AWS access keys.
-pub static AWS_KEY_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)(AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}").unwrap()
-});
+pub static AWS_KEY_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)(AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}").unwrap());
 
 /// Pattern for AWS secret keys.
 pub static AWS_SECRET_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
@@ -39,9 +37,8 @@ pub static GENERIC_API_KEY_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 /// Pattern for private keys (PEM format).
-pub static PRIVATE_KEY_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----").unwrap()
-});
+pub static PRIVATE_KEY_PATTERN: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----").unwrap());
 
 /// Pattern for environment variable assignments with sensitive names.
 pub static ENV_VAR_ASSIGNMENT_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
@@ -50,12 +47,18 @@ pub static ENV_VAR_ASSIGNMENT_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
 
 /// Pattern for JSON/YAML sensitive keys.
 pub static JSON_SENSITIVE_KEY_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r#"(?i)"(password|secret|token|api[_-]?key|private[_-]?key|credentials?)"\s*:\s*"([^"]+)""#).unwrap()
+    Regex::new(
+        r#"(?i)"(password|secret|token|api[_-]?key|private[_-]?key|credentials?)"\s*:\s*"([^"]+)""#,
+    )
+    .unwrap()
 });
 
 /// Pattern for YAML sensitive keys.
 pub static YAML_SENSITIVE_KEY_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^(\s*)(password|secret|token|api[_-]?key|private[_-]?key|credentials?):\s*(.+)$").unwrap()
+    Regex::new(
+        r"(?i)^(\s*)(password|secret|token|api[_-]?key|private[_-]?key|credentials?):\s*(.+)$",
+    )
+    .unwrap()
 });
 
 /// Pattern for IP addresses (for potential redaction if needed).

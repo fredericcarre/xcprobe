@@ -15,7 +15,11 @@ use xcprobe_common::OsType;
 
 #[derive(Parser)]
 #[command(name = "probe-cli")]
-#[command(author, version, about = "Non-intrusive system discovery and collection tool")]
+#[command(
+    author,
+    version,
+    about = "Non-intrusive system discovery and collection tool"
+)]
 struct Cli {
     /// Enable verbose output
     #[arg(short, long, global = true)]
@@ -249,7 +253,10 @@ async fn main() -> anyhow::Result<()> {
             let plan_content = std::fs::read_to_string(&plan)?;
             let pack_plan: xcprobe_bundle_schema::PackPlan = serde_json::from_str(&plan_content)?;
 
-            pack::execute_pack(&pack_plan, &target, os_type, ssh_port, ssh_user, ssh_key, &out).await?;
+            pack::execute_pack(
+                &pack_plan, &target, os_type, ssh_port, ssh_user, ssh_key, &out,
+            )
+            .await?;
             info!("Pack completed to {:?}", out);
         }
     }

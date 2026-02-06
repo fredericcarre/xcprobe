@@ -85,10 +85,7 @@ pub fn validate_plan_evidence(plan: &PackPlan) -> ValidationResult {
             total_confidence += decision.confidence;
 
             if decision.evidence_refs.is_empty() {
-                decisions_without_evidence.push(format!(
-                    "[{}] {}",
-                    cluster.id, decision.decision
-                ));
+                decisions_without_evidence.push(format!("[{}] {}", cluster.id, decision.decision));
             } else {
                 decisions_with_evidence += 1;
             }
@@ -189,12 +186,7 @@ mod tests {
                     vec!["evidence/test.txt".to_string()],
                     0.9,
                 ),
-                Decision::new(
-                    "Decision without evidence",
-                    "Inferred",
-                    vec![],
-                    0.6,
-                ),
+                Decision::new("Decision without evidence", "Inferred", vec![], 0.6),
             ],
         };
 
@@ -228,7 +220,12 @@ mod tests {
                 confidence: 0.8,
                 evidence_refs: vec![],
                 decisions: vec![
-                    Decision::new("With evidence", "reason", vec!["evidence.txt".to_string()], 0.9),
+                    Decision::new(
+                        "With evidence",
+                        "reason",
+                        vec!["evidence.txt".to_string()],
+                        0.9,
+                    ),
                     Decision::new("Without evidence", "reason", vec![], 0.5),
                 ],
             }],

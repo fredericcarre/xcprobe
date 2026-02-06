@@ -81,8 +81,7 @@ pub fn validate_manifest(manifest: &Value) -> Result<ValidationResult, Validatio
         for error in errors {
             result.add_error(ValidationError::SchemaError(format!(
                 "{} at {}",
-                error,
-                error.instance_path
+                error, error.instance_path
             )));
         }
     }
@@ -103,8 +102,7 @@ pub fn validate_packplan(packplan: &Value) -> Result<ValidationResult, Validatio
         for error in errors {
             result.add_error(ValidationError::SchemaError(format!(
                 "{} at {}",
-                error,
-                error.instance_path
+                error, error.instance_path
             )));
         }
     }
@@ -114,7 +112,9 @@ pub fn validate_packplan(packplan: &Value) -> Result<ValidationResult, Validatio
         for cluster in clusters {
             if let Some(decisions) = cluster.get("decisions").and_then(|d| d.as_array()) {
                 for decision in decisions {
-                    if let Some(evidence_refs) = decision.get("evidence_refs").and_then(|e| e.as_array()) {
+                    if let Some(evidence_refs) =
+                        decision.get("evidence_refs").and_then(|e| e.as_array())
+                    {
                         if evidence_refs.is_empty() {
                             let decision_text = decision
                                 .get("decision")

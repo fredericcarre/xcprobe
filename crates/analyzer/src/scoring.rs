@@ -27,26 +27,38 @@ pub fn score_processes(manifest: &Manifest) -> HashMap<u32, ProcessScore> {
 
         // System process detection (lower score)
         let system_prefixes = [
-            "kworker", "migration", "ksoftirqd", "rcu_", "watchdog",
-            "kthreadd", "kswapd", "khugepaged", "kcompactd",
+            "kworker",
+            "migration",
+            "ksoftirqd",
+            "rcu_",
+            "watchdog",
+            "kthreadd",
+            "kswapd",
+            "khugepaged",
+            "kcompactd",
         ];
-        if system_prefixes.iter().any(|p| process.command.starts_with(p)) {
+        if system_prefixes
+            .iter()
+            .any(|p| process.command.starts_with(p))
+        {
             score = 0.1;
             reasons.push("System kernel thread".to_string());
         }
 
         // Container/orchestration processes
         let container_keywords = ["docker", "containerd", "kubelet", "crio"];
-        if container_keywords.iter().any(|k| process.command.contains(k)) {
+        if container_keywords
+            .iter()
+            .any(|k| process.command.contains(k))
+        {
             score = 0.3;
             reasons.push("Container runtime process".to_string());
         }
 
         // Common service processes (higher score)
         let service_keywords = [
-            "nginx", "apache", "httpd", "java", "python", "node",
-            "ruby", "php", "dotnet", "postgres", "mysql", "redis",
-            "mongo", "rabbit", "kafka", "elastic",
+            "nginx", "apache", "httpd", "java", "python", "node", "ruby", "php", "dotnet",
+            "postgres", "mysql", "redis", "mongo", "rabbit", "kafka", "elastic",
         ];
         if service_keywords.iter().any(|k| {
             process.command.to_lowercase().contains(k)
@@ -73,7 +85,9 @@ pub fn score_processes(manifest: &Manifest) -> HashMap<u32, ProcessScore> {
         }
 
         // User processes (not root) often indicate business apps
-        if process.user != "root" && !["nobody", "daemon", "systemd-network"].contains(&process.user.as_str()) {
+        if process.user != "root"
+            && !["nobody", "daemon", "systemd-network"].contains(&process.user.as_str())
+        {
             score += 0.1;
             reasons.push(format!("Runs as user: {}", process.user));
         }
@@ -107,8 +121,17 @@ pub fn score_services(manifest: &Manifest) -> HashMap<String, f64> {
 
     // System service patterns (lower score)
     let system_patterns = [
-        "systemd-", "dbus", "polkit", "udev", "getty", "sshd",
-        "cron", "rsyslog", "auditd", "firewalld", "networkmanager",
+        "systemd-",
+        "dbus",
+        "polkit",
+        "udev",
+        "getty",
+        "sshd",
+        "cron",
+        "rsyslog",
+        "auditd",
+        "firewalld",
+        "networkmanager",
     ];
 
     for service in &manifest.services {

@@ -65,8 +65,14 @@ pub fn detect_dependencies(bundle: &Bundle, clusters: &mut [AppCluster]) -> Resu
                                         if !cluster.depends_on.contains(dep_cluster_id) {
                                             cluster.depends_on.push(dep_cluster_id.clone());
                                             cluster.decisions.push(Decision::new(
-                                                format!("Depends on cluster {} (port {})", dep_cluster_id, port_num),
-                                                format!("Found endpoint {} in config {}", endpoint, config.source_path),
+                                                format!(
+                                                    "Depends on cluster {} (port {})",
+                                                    dep_cluster_id, port_num
+                                                ),
+                                                format!(
+                                                    "Found endpoint {} in config {}",
+                                                    endpoint, config.source_path
+                                                ),
                                                 vec![evidence_ref.clone()],
                                                 0.9,
                                             ));
@@ -121,7 +127,10 @@ pub fn detect_dependencies(bundle: &Bundle, clusters: &mut [AppCluster]) -> Resu
                                 cluster.external_deps.push(dep.id.clone());
                                 cluster.decisions.push(Decision::new(
                                     format!("Database dependency detected: {}", host_str),
-                                    format!("Found DB_HOST pattern in config: {}", config.source_path),
+                                    format!(
+                                        "Found DB_HOST pattern in config: {}",
+                                        config.source_path
+                                    ),
                                     vec![evidence_ref.clone()],
                                     0.85,
                                 ));
@@ -141,8 +150,14 @@ pub fn detect_dependencies(bundle: &Bundle, clusters: &mut [AppCluster]) -> Resu
 
             // Check for dependency-related env vars
             let dep_patterns = [
-                ("database", &["database_url", "db_url", "db_host", "postgres", "mysql"]),
-                ("cache", &["redis_url", "redis_host", "cache_url", "memcached"]),
+                (
+                    "database",
+                    &["database_url", "db_url", "db_host", "postgres", "mysql"],
+                ),
+                (
+                    "cache",
+                    &["redis_url", "redis_host", "cache_url", "memcached"],
+                ),
                 ("messagequeue", &["amqp_url", "rabbitmq", "kafka"]),
                 ("api", &["api_url", "api_host", "service_url"]),
             ];
@@ -150,7 +165,10 @@ pub fn detect_dependencies(bundle: &Bundle, clusters: &mut [AppCluster]) -> Resu
             for (dep_type, patterns) in dep_patterns {
                 if patterns.iter().any(|p| name_lower.contains(p)) {
                     cluster.decisions.push(Decision::new(
-                        format!("Likely {} dependency from env var {}", dep_type, env_var.name),
+                        format!(
+                            "Likely {} dependency from env var {}",
+                            dep_type, env_var.name
+                        ),
                         "Environment variable name suggests external dependency",
                         env_var.evidence_ref.iter().cloned().collect(),
                         0.7,
@@ -204,7 +222,10 @@ fn detect_dependency_type(endpoint: &str, port: Option<u16>) -> String {
         return "database".to_string();
     } else if endpoint_lower.starts_with("redis") || endpoint_lower.starts_with("memcached") {
         return "cache".to_string();
-    } else if endpoint_lower.starts_with("amqp") || endpoint_lower.contains("rabbit") || endpoint_lower.contains("kafka") {
+    } else if endpoint_lower.starts_with("amqp")
+        || endpoint_lower.contains("rabbit")
+        || endpoint_lower.contains("kafka")
+    {
         return "messagequeue".to_string();
     } else if endpoint_lower.starts_with("mongodb") {
         return "database".to_string();
@@ -267,18 +288,36 @@ mod tests {
 
     #[test]
     fn test_extract_port_from_endpoint() {
-        assert_eq!(extract_port_from_endpoint("postgres://localhost:5432/db"), Some(5432));
+        assert_eq!(
+            extract_port_from_endpoint("postgres://localhost:5432/db"),
+            Some(5432)
+        );
         assert_eq!(extract_port_from_endpoint("redis://cache:6379"), Some(6379));
-        assert_eq!(extract_port_from_endpoint("http://api.example.com:8080/v1"), Some(8080));
+        assert_eq!(
+            extract_port_from_endpoint("http://api.example.com:8080/v1"),
+            Some(8080)
+        );
         assert_eq!(extract_port_from_endpoint("postgres://db/mydb"), Some(5432));
-        assert_eq!(extract_port_from_endpoint("https://api.example.com"), Some(443));
+        assert_eq!(
+            extract_port_from_endpoint("https://api.example.com"),
+            Some(443)
+        );
     }
 
     #[test]
     fn test_detect_dependency_type() {
-        assert_eq!(detect_dependency_type("postgres://localhost:5432", Some(5432)), "database");
-        assert_eq!(detect_dependency_type("redis://cache:6379", Some(6379)), "cache");
-        assert_eq!(detect_dependency_type("amqp://rabbit:5672", Some(5672)), "messagequeue");
+        assert_eq!(
+            detect_dependency_type("postgres://localhost:5432", Some(5432)),
+            "database"
+        );
+        assert_eq!(
+            detect_dependency_type("redis://cache:6379", Some(6379)),
+            "cache"
+        );
+        assert_eq!(
+            detect_dependency_type("amqp://rabbit:5672", Some(5672)),
+            "messagequeue"
+        );
         assert_eq!(detect_dependency_type("192.168.1.100", Some(80)), "api");
     }
 }

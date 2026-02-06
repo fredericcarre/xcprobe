@@ -99,7 +99,9 @@ impl SshExecutor {
             // Try agent
             let mut agent = session.agent().context("Failed to connect to SSH agent")?;
             agent.connect().context("Failed to connect to SSH agent")?;
-            agent.list_identities().context("Failed to list SSH agent identities")?;
+            agent
+                .list_identities()
+                .context("Failed to list SSH agent identities")?;
 
             let identities: Vec<_> = agent.identities()?.collect();
             let mut authenticated = false;
@@ -129,14 +131,24 @@ impl Executor for SshExecutor {
     async fn execute(&self, command: &str) -> Result<(Option<i32>, String, String)> {
         debug!("SSH exec: {}", command);
 
-        let mut channel = self.session.channel_session().context("Failed to open SSH channel")?;
-        channel.exec(command).context("Failed to execute SSH command")?;
+        let mut channel = self
+            .session
+            .channel_session()
+            .context("Failed to open SSH channel")?;
+        channel
+            .exec(command)
+            .context("Failed to execute SSH command")?;
 
         let mut stdout = String::new();
-        channel.read_to_string(&mut stdout).context("Failed to read stdout")?;
+        channel
+            .read_to_string(&mut stdout)
+            .context("Failed to read stdout")?;
 
         let mut stderr = String::new();
-        channel.stderr().read_to_string(&mut stderr).context("Failed to read stderr")?;
+        channel
+            .stderr()
+            .read_to_string(&mut stderr)
+            .context("Failed to read stderr")?;
 
         channel.wait_close().ok();
         let exit_code = channel.exit_status().ok();
@@ -178,7 +190,8 @@ impl WinRmExecutor {
             .context("Failed to create HTTP client")?;
 
         // Test connection
-        let test_result = Self::execute_winrm_command(&client, &endpoint, &username, &password, "hostname").await;
+        let test_result =
+            Self::execute_winrm_command(&client, &endpoint, &username, &password, "hostname").await;
         if test_result.is_err() {
             warn!("WinRM connection test failed, continuing anyway");
         }
@@ -237,14 +250,21 @@ impl WinRmExecutor {
             .context("WinRM request failed")?;
 
         let status = response.status();
-        let body = response.text().await.context("Failed to read WinRM response")?;
+        let body = response
+            .text()
+            .await
+            .context("Failed to read WinRM response")?;
 
         if status.is_success() {
             // Parse SOAP response to extract output
             // This is a simplified implementation
             Ok((Some(0), body, String::new()))
         } else {
-            Ok((Some(1), String::new(), format!("WinRM error: {} - {}", status, body)))
+            Ok((
+                Some(1),
+                String::new(),
+                format!("WinRM error: {} - {}", status, body),
+            ))
         }
     }
 }
@@ -253,7 +273,14 @@ impl WinRmExecutor {
 impl Executor for WinRmExecutor {
     async fn execute(&self, command: &str) -> Result<(Option<i32>, String, String)> {
         debug!("WinRM exec: {}", command);
-        Self::execute_winrm_command(&self.client, &self.endpoint, &self.username, &self.password, command).await
+        Self::execute_winrm_command(
+            &self.client,
+            &self.endpoint,
+            &self.username,
+            &self.password,
+            command,
+        )
+        .await
     }
 
     fn is_connected(&self) -> bool {
@@ -273,8 +300,16 @@ fn base64_encode(data: &[u8]) -> String {
 
     while i < data.len() {
         let b0 = data[i] as usize;
-        let b1 = if i + 1 < data.len() { data[i + 1] as usize } else { 0 };
-        let b2 = if i + 2 < data.len() { data[i + 2] as usize } else { 0 };
+        let b1 = if i + 1 < data.len() {
+            data[i + 1] as usize
+        } else {
+            0
+        };
+        let b2 = if i + 2 < data.len() {
+            data[i + 2] as usize
+        } else {
+            0
+        };
 
         result.push(ALPHABET[b0 >> 2] as char);
         result.push(ALPHABET[((b0 & 0x03) << 4) | (b1 >> 4)] as char);

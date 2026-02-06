@@ -80,11 +80,21 @@ pub struct Thresholds {
     pub require_all_evidence: bool,
 }
 
-fn default_process_recall() -> f64 { 0.9 }
-fn default_ports_recall() -> f64 { 0.95 }
-fn default_env_recall() -> f64 { 0.8 }
-fn default_deps_recall() -> f64 { 0.8 }
-fn default_require_evidence() -> bool { true }
+fn default_process_recall() -> f64 {
+    0.9
+}
+fn default_ports_recall() -> f64 {
+    0.95
+}
+fn default_env_recall() -> f64 {
+    0.8
+}
+fn default_deps_recall() -> f64 {
+    0.8
+}
+fn default_require_evidence() -> bool {
+    true
+}
 
 impl Default for Thresholds {
     fn default() -> Self {

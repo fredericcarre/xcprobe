@@ -94,43 +94,91 @@ impl Collector {
 
         // Collect system info
         info!("Collecting system information...");
-        self.collect_system_info(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_system_info(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect processes
         info!("Collecting process information...");
-        self.collect_processes(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_processes(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect services
         info!("Collecting service information...");
-        self.collect_services(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_services(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect ports
         info!("Collecting port information...");
-        self.collect_ports(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_ports(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect packages
         info!("Collecting package information...");
-        self.collect_packages(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_packages(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect scheduled tasks
         info!("Collecting scheduled tasks...");
-        self.collect_scheduled_tasks(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_scheduled_tasks(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect config files based on discovered services
         info!("Collecting configuration files...");
-        self.collect_config_files(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_config_files(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         // Collect log snippets
         info!("Collecting log snippets...");
-        self.collect_logs(&*executor, &commands, &mut manifest, &mut audit_log, &mut evidence)
-            .await?;
+        self.collect_logs(
+            &*executor,
+            &commands,
+            &mut manifest,
+            &mut audit_log,
+            &mut evidence,
+        )
+        .await?;
 
         manifest.completed_at = Some(Utc::now());
 
@@ -185,24 +233,35 @@ impl Collector {
         evidence: &mut HashMap<String, Evidence>,
     ) -> Result<()> {
         let cmd = commands.hostname_cmd();
-        let result = self.execute_and_record(executor, cmd, "system", audit_log, evidence).await?;
+        let result = self
+            .execute_and_record(executor, cmd, "system", audit_log, evidence)
+            .await?;
         manifest.system.hostname = result.stdout.trim().to_string();
         manifest.system.os_type = self.config.os_type.to_string();
 
         if let Some(cmd) = commands.os_version_cmd() {
-            if let Ok(result) = self.execute_and_record(executor, cmd, "system", audit_log, evidence).await {
+            if let Ok(result) = self
+                .execute_and_record(executor, cmd, "system", audit_log, evidence)
+                .await
+            {
                 manifest.system.os_version = Some(result.stdout.trim().to_string());
             }
         }
 
         if let Some(cmd) = commands.kernel_version_cmd() {
-            if let Ok(result) = self.execute_and_record(executor, cmd, "system", audit_log, evidence).await {
+            if let Ok(result) = self
+                .execute_and_record(executor, cmd, "system", audit_log, evidence)
+                .await
+            {
                 manifest.system.kernel_version = Some(result.stdout.trim().to_string());
             }
         }
 
         if let Some(cmd) = commands.architecture_cmd() {
-            if let Ok(result) = self.execute_and_record(executor, cmd, "system", audit_log, evidence).await {
+            if let Ok(result) = self
+                .execute_and_record(executor, cmd, "system", audit_log, evidence)
+                .await
+            {
                 manifest.system.architecture = Some(result.stdout.trim().to_string());
             }
         }
@@ -219,7 +278,9 @@ impl Collector {
         evidence: &mut HashMap<String, Evidence>,
     ) -> Result<()> {
         for cmd in commands.process_cmds() {
-            let result = self.execute_and_record(executor, cmd, "process", audit_log, evidence).await;
+            let result = self
+                .execute_and_record(executor, cmd, "process", audit_log, evidence)
+                .await;
             if let Ok(result) = result {
                 let processes = parsers::parse_processes(&result.stdout, self.config.os_type)?;
                 for mut proc in processes {
@@ -241,7 +302,9 @@ impl Collector {
     ) -> Result<()> {
         // List services
         let list_cmd = commands.service_list_cmd();
-        let result = self.execute_and_record(executor, list_cmd, "service", audit_log, evidence).await?;
+        let result = self
+            .execute_and_record(executor, list_cmd, "service", audit_log, evidence)
+            .await?;
         let service_names = parsers::parse_service_list(&result.stdout, self.config.os_type)?;
 
         // Get details for each service
@@ -251,14 +314,18 @@ impl Collector {
                     .execute_and_record(executor, &show_cmd, "service", audit_log, evidence)
                     .await
                 {
-                    if let Ok(mut service) = parsers::parse_service_details(&show_result.stdout, self.config.os_type) {
+                    if let Ok(mut service) =
+                        parsers::parse_service_details(&show_result.stdout, self.config.os_type)
+                    {
                         service.evidence_ref = Some(show_result.evidence_ref.clone());
 
                         // Try to get unit file content for Linux
                         if self.config.os_type.is_linux() {
                             if let Some(cat_cmd) = commands.service_cat_cmd(&name) {
                                 if let Ok(cat_result) = self
-                                    .execute_and_record(executor, &cat_cmd, "service", audit_log, evidence)
+                                    .execute_and_record(
+                                        executor, &cat_cmd, "service", audit_log, evidence,
+                                    )
                                     .await
                                 {
                                     // Parse unit file for additional info
@@ -269,7 +336,9 @@ impl Collector {
                                     if let Some(wd) = unit_info.working_directory {
                                         service.working_directory = Some(wd);
                                     }
-                                    service.environment_files.extend(unit_info.environment_files);
+                                    service
+                                        .environment_files
+                                        .extend(unit_info.environment_files);
                                 }
                             }
                         }
@@ -292,7 +361,9 @@ impl Collector {
         evidence: &mut HashMap<String, Evidence>,
     ) -> Result<()> {
         let cmd = commands.ports_cmd();
-        let result = self.execute_and_record(executor, cmd, "ports", audit_log, evidence).await?;
+        let result = self
+            .execute_and_record(executor, cmd, "ports", audit_log, evidence)
+            .await?;
         let ports = parsers::parse_ports(&result.stdout, self.config.os_type)?;
 
         for mut port in ports {
@@ -312,7 +383,10 @@ impl Collector {
         evidence: &mut HashMap<String, Evidence>,
     ) -> Result<()> {
         for cmd in commands.package_cmds() {
-            if let Ok(result) = self.execute_and_record(executor, cmd, "packages", audit_log, evidence).await {
+            if let Ok(result) = self
+                .execute_and_record(executor, cmd, "packages", audit_log, evidence)
+                .await
+            {
                 let packages = parsers::parse_packages(&result.stdout, self.config.os_type, cmd)?;
                 manifest.packages.extend(packages);
                 break; // Only use first successful package manager
@@ -471,7 +545,12 @@ impl Collector {
         // Create evidence
         let content = format!("=== STDOUT ===\n{}\n\n=== STDERR ===\n{}", stdout, stderr);
         let redacted = self.redactor.redact(&content);
-        let ev = Evidence::from_command_output(&evidence_id, command, redacted.content.into_bytes(), &evidence_ref);
+        let ev = Evidence::from_command_output(
+            &evidence_id,
+            command,
+            redacted.content.into_bytes(),
+            &evidence_ref,
+        );
         evidence.insert(evidence_ref.clone(), ev);
 
         // Create audit entry

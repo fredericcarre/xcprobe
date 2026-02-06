@@ -129,7 +129,10 @@ impl CommandSet for LinuxCommands {
         }
         // Only allow reading from specific directories
         let allowed_prefixes = ["/etc/", "/opt/", "/srv/", "/var/log/", "/home/"];
-        if !allowed_prefixes.iter().any(|prefix| path.starts_with(prefix)) {
+        if !allowed_prefixes
+            .iter()
+            .any(|prefix| path.starts_with(prefix))
+        {
             return None;
         }
         Some(format!("cat '{}' 2>/dev/null | head -c 1048576", path)) // Max 1MB
@@ -207,15 +210,11 @@ impl CommandSet for WindowsCommands {
     }
 
     fn package_cmds(&self) -> Vec<&str> {
-        vec![
-            "Get-Package | Select-Object Name,Version | ConvertTo-Json -Depth 3",
-        ]
+        vec!["Get-Package | Select-Object Name,Version | ConvertTo-Json -Depth 3"]
     }
 
     fn scheduled_task_cmds(&self) -> Vec<&str> {
-        vec![
-            "Get-ScheduledTask | Select-Object TaskName,State,TaskPath | ConvertTo-Json -Depth 3",
-        ]
+        vec!["Get-ScheduledTask | Select-Object TaskName,State,TaskPath | ConvertTo-Json -Depth 3"]
     }
 
     fn read_file_cmd(&self, path: &str) -> Option<String> {
@@ -225,10 +224,16 @@ impl CommandSet for WindowsCommands {
         // Only allow reading from specific directories
         let allowed_prefixes = ["C:\\ProgramData\\", "C:\\Program Files\\", "C:\\inetpub\\"];
         let normalized = path.replace('/', "\\");
-        if !allowed_prefixes.iter().any(|prefix| normalized.starts_with(prefix)) {
+        if !allowed_prefixes
+            .iter()
+            .any(|prefix| normalized.starts_with(prefix))
+        {
             return None;
         }
-        Some(format!("Get-Content -Path '{}' -TotalCount 10000 -ErrorAction SilentlyContinue", path))
+        Some(format!(
+            "Get-Content -Path '{}' -TotalCount 10000 -ErrorAction SilentlyContinue",
+            path
+        ))
     }
 
     fn journal_cmd(&self, _unit: &str, since: &str) -> Option<String> {
@@ -242,7 +247,8 @@ impl CommandSet for WindowsCommands {
 /// Validate that a service name is safe (no injection).
 fn is_safe_service_name(name: &str) -> bool {
     // Allow alphanumeric, dash, underscore, dot, @
-    name.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '@')
+    name.chars()
+        .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '@')
         && !name.is_empty()
         && name.len() < 256
 }

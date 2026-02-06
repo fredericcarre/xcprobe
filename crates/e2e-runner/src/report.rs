@@ -41,20 +41,45 @@ fn print_text_report(results: &[RunResult]) {
 
     println!("Summary:");
     println!("  Total:  {}", total);
-    println!("  Passed: {} ({:.1}%)", passed, (passed as f64 / total as f64) * 100.0);
-    println!("  Failed: {} ({:.1}%)", failed, (failed as f64 / total as f64) * 100.0);
+    println!(
+        "  Passed: {} ({:.1}%)",
+        passed,
+        (passed as f64 / total as f64) * 100.0
+    );
+    println!(
+        "  Failed: {} ({:.1}%)",
+        failed,
+        (failed as f64 / total as f64) * 100.0
+    );
     println!();
 
     // Aggregate metrics
     if !results.is_empty() {
-        let avg_process_recall: f64 = results.iter().map(|r| r.metrics.process_cmdline_recall).sum::<f64>() / results.len() as f64;
-        let avg_ports_recall: f64 = results.iter().map(|r| r.metrics.ports_recall).sum::<f64>() / results.len() as f64;
-        let avg_env_recall: f64 = results.iter().map(|r| r.metrics.env_names_recall).sum::<f64>() / results.len() as f64;
-        let avg_deps_recall: f64 = results.iter().map(|r| r.metrics.deps_recall).sum::<f64>() / results.len() as f64;
-        let avg_evidence: f64 = results.iter().map(|r| r.metrics.decisions_with_evidence_ratio).sum::<f64>() / results.len() as f64;
+        let avg_process_recall: f64 = results
+            .iter()
+            .map(|r| r.metrics.process_cmdline_recall)
+            .sum::<f64>()
+            / results.len() as f64;
+        let avg_ports_recall: f64 =
+            results.iter().map(|r| r.metrics.ports_recall).sum::<f64>() / results.len() as f64;
+        let avg_env_recall: f64 = results
+            .iter()
+            .map(|r| r.metrics.env_names_recall)
+            .sum::<f64>()
+            / results.len() as f64;
+        let avg_deps_recall: f64 =
+            results.iter().map(|r| r.metrics.deps_recall).sum::<f64>() / results.len() as f64;
+        let avg_evidence: f64 = results
+            .iter()
+            .map(|r| r.metrics.decisions_with_evidence_ratio)
+            .sum::<f64>()
+            / results.len() as f64;
 
         println!("Average Metrics:");
-        println!("  Process/Cmdline Recall: {:.1}%", avg_process_recall * 100.0);
+        println!(
+            "  Process/Cmdline Recall: {:.1}%",
+            avg_process_recall * 100.0
+        );
         println!("  Ports Recall:           {:.1}%", avg_ports_recall * 100.0);
         println!("  Env Names Recall:       {:.1}%", avg_env_recall * 100.0);
         println!("  Dependencies Recall:    {:.1}%", avg_deps_recall * 100.0);
@@ -64,7 +89,10 @@ fn print_text_report(results: &[RunResult]) {
 
     println!("Scenario Results:");
     println!("{:-<80}", "");
-    println!("{:<30} {:>10} {:>10} {:>10} {:>10}", "Scenario", "Status", "Proc%", "Port%", "Time(s)");
+    println!(
+        "{:<30} {:>10} {:>10} {:>10} {:>10}",
+        "Scenario", "Status", "Proc%", "Port%", "Time(s)"
+    );
     println!("{:-<80}", "");
 
     for result in results {
@@ -85,7 +113,10 @@ fn print_text_report(results: &[RunResult]) {
     if !failures.is_empty() {
         println!("\nFailures:");
         for result in failures {
-            println!("\n  {} ({:.2}s):", result.scenario_name, result.duration_seconds);
+            println!(
+                "\n  {} ({:.2}s):",
+                result.scenario_name, result.duration_seconds
+            );
             for failure in &result.failures {
                 println!("    - {}", failure);
             }
@@ -111,7 +142,8 @@ fn print_html_report(results: &[RunResult]) {
     let passed = results.iter().filter(|r| r.passed).count();
     let failed = total - passed;
 
-    println!(r#"<!DOCTYPE html>
+    println!(
+        r#"<!DOCTYPE html>
 <html>
 <head>
     <title>XCProbe E2E Test Report</title>
@@ -145,7 +177,8 @@ fn print_html_report(results: &[RunResult]) {
             <th>Deps Recall</th>
             <th>Evidence</th>
             <th>Duration</th>
-        </tr>"#);
+        </tr>"#
+    );
 
     for result in results {
         let status_class = if result.passed { "pass" } else { "fail" };
@@ -174,7 +207,9 @@ fn print_html_report(results: &[RunResult]) {
         );
     }
 
-    println!(r#"    </table>
+    println!(
+        r#"    </table>
 </body>
-</html>"#);
+</html>"#
+    );
 }

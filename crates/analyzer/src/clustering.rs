@@ -4,8 +4,8 @@ use crate::scoring::ProcessScore;
 use anyhow::Result;
 use std::collections::HashMap;
 use xcprobe_bundle_schema::{
-    AppCluster, Bundle, ClusterPort, ClusterProcess, ClusterService, ConfigFileSpec,
-    Decision, EnvVarSpec,
+    AppCluster, Bundle, ClusterPort, ClusterProcess, ClusterService, ConfigFileSpec, Decision,
+    EnvVarSpec,
 };
 
 /// Cluster processes and services into logical applications.
@@ -28,8 +28,16 @@ pub fn cluster_applications(
         // Check if this is a business-relevant service
         let name_lower = service.name.to_lowercase();
         let system_patterns = [
-            "systemd-", "dbus", "polkit", "getty", "sshd", "cron",
-            "rsyslog", "auditd", "firewalld", "networkmanager",
+            "systemd-",
+            "dbus",
+            "polkit",
+            "getty",
+            "sshd",
+            "cron",
+            "rsyslog",
+            "auditd",
+            "firewalld",
+            "networkmanager",
         ];
         if system_patterns.iter().any(|p| name_lower.contains(p)) {
             continue;

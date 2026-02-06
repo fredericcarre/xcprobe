@@ -90,12 +90,24 @@ mod tests {
     #[test]
     fn test_is_high_entropy() {
         // High entropy strings
-        assert!(is_high_entropy("sk_live_1234567890abcdefghij", DEFAULT_ENTROPY_THRESHOLD));
-        assert!(is_high_entropy("aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3", DEFAULT_ENTROPY_THRESHOLD));
+        assert!(is_high_entropy(
+            "sk_live_1234567890abcdefghij",
+            DEFAULT_ENTROPY_THRESHOLD
+        ));
+        assert!(is_high_entropy(
+            "aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW3",
+            DEFAULT_ENTROPY_THRESHOLD
+        ));
 
         // Low entropy strings
-        assert!(!is_high_entropy("passwordpasswordpassword", DEFAULT_ENTROPY_THRESHOLD));
-        assert!(!is_high_entropy("aaaaaaaaaaaaaaaa", DEFAULT_ENTROPY_THRESHOLD));
+        assert!(!is_high_entropy(
+            "passwordpasswordpassword",
+            DEFAULT_ENTROPY_THRESHOLD
+        ));
+        assert!(!is_high_entropy(
+            "aaaaaaaaaaaaaaaa",
+            DEFAULT_ENTROPY_THRESHOLD
+        ));
 
         // Too short
         assert!(!is_high_entropy("short", DEFAULT_ENTROPY_THRESHOLD));

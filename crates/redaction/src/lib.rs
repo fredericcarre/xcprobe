@@ -7,7 +7,7 @@ pub mod entropy;
 pub mod patterns;
 pub mod redactor;
 
-pub use redactor::{Redactor, RedactionResult, RedactionStats};
+pub use redactor::{RedactionResult, RedactionStats, Redactor};
 
 /// Default placeholder for redacted values.
 pub const REDACTED_PLACEHOLDER: &str = "[REDACTED]";
@@ -19,7 +19,12 @@ pub const HASH_PLACEHOLDER_SUFFIX: &str = "]";
 /// Create a hash placeholder for a value.
 pub fn hash_placeholder(value: &str) -> String {
     let hash = xcprobe_common::hash::sha256_str(value);
-    format!("{}{}{}", HASH_PLACEHOLDER_PREFIX, &hash[..12], HASH_PLACEHOLDER_SUFFIX)
+    format!(
+        "{}{}{}",
+        HASH_PLACEHOLDER_PREFIX,
+        &hash[..12],
+        HASH_PLACEHOLDER_SUFFIX
+    )
 }
 
 #[cfg(test)]

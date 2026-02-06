@@ -117,16 +117,34 @@ async fn main() -> Result<()> {
             // Print summary
             println!("\n=== Test Results ===");
             println!("Scenario: {}", result.scenario_name);
-            println!("Status: {}", if result.passed { "PASSED" } else { "FAILED" });
+            println!(
+                "Status: {}",
+                if result.passed { "PASSED" } else { "FAILED" }
+            );
             println!();
 
             // Print metrics
             println!("Metrics:");
-            println!("  Process/Cmdline Recall: {:.2}%", result.metrics.process_cmdline_recall * 100.0);
-            println!("  Ports Recall: {:.2}%", result.metrics.ports_recall * 100.0);
-            println!("  Env Names Recall: {:.2}%", result.metrics.env_names_recall * 100.0);
-            println!("  Dependencies Recall: {:.2}%", result.metrics.deps_recall * 100.0);
-            println!("  Decisions with Evidence: {:.2}%", result.metrics.decisions_with_evidence_ratio * 100.0);
+            println!(
+                "  Process/Cmdline Recall: {:.2}%",
+                result.metrics.process_cmdline_recall * 100.0
+            );
+            println!(
+                "  Ports Recall: {:.2}%",
+                result.metrics.ports_recall * 100.0
+            );
+            println!(
+                "  Env Names Recall: {:.2}%",
+                result.metrics.env_names_recall * 100.0
+            );
+            println!(
+                "  Dependencies Recall: {:.2}%",
+                result.metrics.deps_recall * 100.0
+            );
+            println!(
+                "  Decisions with Evidence: {:.2}%",
+                result.metrics.decisions_with_evidence_ratio * 100.0
+            );
 
             if !result.passed {
                 println!("\nFailures:");

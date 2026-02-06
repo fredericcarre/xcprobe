@@ -167,12 +167,19 @@ async fn run_probe_collect(scenario_path: &PathBuf, bundle_path: &PathBuf) -> Re
         .args(["compose", "-f"])
         .arg(&compose_path)
         .args([
-            "exec", "-T", "host-sim",
-            "/probe-cli", "collect",
-            "--target", "localhost",
-            "--os", "linux",
-            "--mode", "local-ephemeral",
-            "--out", "/tmp/bundle.tgz",
+            "exec",
+            "-T",
+            "host-sim",
+            "/probe-cli",
+            "collect",
+            "--target",
+            "localhost",
+            "--os",
+            "linux",
+            "--mode",
+            "local-ephemeral",
+            "--out",
+            "/tmp/bundle.tgz",
         ])
         .current_dir(scenario_path)
         .output()
@@ -205,10 +212,7 @@ async fn run_analyzer(bundle_path: &PathBuf, plan_path: &PathBuf) -> Result<Path
     let output_dir = plan_path.parent().unwrap();
 
     let output = Command::new("analyzer")
-        .args([
-            "analyze",
-            "--bundle",
-        ])
+        .args(["analyze", "--bundle"])
         .arg(bundle_path)
         .args(["--out"])
         .arg(output_dir)
@@ -223,7 +227,11 @@ async fn run_analyzer(bundle_path: &PathBuf, plan_path: &PathBuf) -> Result<Path
     Ok(plan_path.clone())
 }
 
-fn archive_artifacts(config: &RunConfig, bundle_path: &Option<PathBuf>, plan_path: &Option<PathBuf>) -> Result<()> {
+fn archive_artifacts(
+    config: &RunConfig,
+    bundle_path: &Option<PathBuf>,
+    plan_path: &Option<PathBuf>,
+) -> Result<()> {
     let archive_dir = config.artifacts_path.join("failed_artifacts");
     std::fs::create_dir_all(&archive_dir)?;
 

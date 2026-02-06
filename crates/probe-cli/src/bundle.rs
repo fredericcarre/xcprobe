@@ -129,7 +129,8 @@ pub fn validate_bundle_file(
 
     let evidence_files: HashSet<String> = bundle.evidence.keys().cloned().collect();
 
-    let mut result = validation::validate_bundle(&bundle.manifest, &evidence_files, &bundle.checksums)?;
+    let mut result =
+        validation::validate_bundle(&bundle.manifest, &evidence_files, &bundle.checksums)?;
 
     // Verify checksums
     if verify_checksums {
