@@ -127,8 +127,9 @@ mod tests {
     #[test]
     fn test_env_var_assignment() {
         assert!(ENV_VAR_ASSIGNMENT_PATTERN.is_match("DATABASE_PASSWORD=mysecret123"));
-        assert!(ENV_VAR_ASSIGNMENT_PATTERN.is_match("API_KEY=abcdef12345"));
+        assert!(ENV_VAR_ASSIGNMENT_PATTERN.is_match("MY_API_KEY=abcdef12345"));
         assert!(ENV_VAR_ASSIGNMENT_PATTERN.is_match("JWT_SECRET=supersecret"));
+        assert!(ENV_VAR_ASSIGNMENT_PATTERN.is_match("APP_APIKEY=test123"));
     }
 
     #[test]
