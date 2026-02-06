@@ -36,6 +36,6 @@ mod tests {
         let placeholder = hash_placeholder("my-secret-value");
         assert!(placeholder.starts_with(HASH_PLACEHOLDER_PREFIX));
         assert!(placeholder.ends_with(HASH_PLACEHOLDER_SUFFIX));
-        assert_eq!(placeholder.len(), 20); // [HASH: + 12 chars + ]
+        assert_eq!(placeholder.len(), 19); // [HASH: (6) + 12 chars + ] (1) = 19
     }
 }
