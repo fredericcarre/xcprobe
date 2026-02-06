@@ -2,7 +2,6 @@
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::Path;
 
 /// Ground truth for a test scenario.
@@ -119,6 +118,7 @@ pub fn load_truth(path: &Path) -> Result<Truth> {
 #[derive(Debug)]
 pub struct TruthValidation {
     pub errors: Vec<String>,
+    #[allow(dead_code)]
     pub warnings: Vec<String>,
 }
 

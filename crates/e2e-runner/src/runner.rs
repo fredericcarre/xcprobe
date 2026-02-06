@@ -1,13 +1,13 @@
 //! Test scenario runner.
 
 use crate::metrics::{calculate_metrics, check_thresholds, TestMetrics};
-use crate::truth::{load_truth, Truth};
+use crate::truth::load_truth;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
-use tokio::time::{timeout, Duration};
-use tracing::{debug, info, warn};
+use tokio::time::Duration;
+use tracing::{info, warn};
 
 /// Configuration for running a scenario.
 #[derive(Debug, Clone)]
@@ -15,6 +15,7 @@ pub struct RunConfig {
     pub scenario_path: PathBuf,
     pub artifacts_path: PathBuf,
     pub keep_running: bool,
+    #[allow(dead_code)]
     pub timeout_seconds: u64,
 }
 
@@ -158,7 +159,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     Ok(result)
 }
 
-async fn run_probe_collect(scenario_path: &PathBuf, bundle_path: &PathBuf) -> Result<PathBuf> {
+async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf> {
     // Get the host-sim container name
     let compose_path = scenario_path.join("compose.yaml");
 
@@ -205,10 +206,10 @@ async fn run_probe_collect(scenario_path: &PathBuf, bundle_path: &PathBuf) -> Re
         anyhow::bail!("Failed to copy bundle: {}", stderr);
     }
 
-    Ok(bundle_path.clone())
+    Ok(bundle_path.to_path_buf())
 }
 
-async fn run_analyzer(bundle_path: &PathBuf, plan_path: &PathBuf) -> Result<PathBuf> {
+async fn run_analyzer(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
     let output_dir = plan_path.parent().unwrap();
 
     let output = Command::new("analyzer")
@@ -224,7 +225,7 @@ async fn run_analyzer(bundle_path: &PathBuf, plan_path: &PathBuf) -> Result<Path
         anyhow::bail!("analyzer failed: {}", stderr);
     }
 
-    Ok(plan_path.clone())
+    Ok(plan_path.to_path_buf())
 }
 
 fn archive_artifacts(

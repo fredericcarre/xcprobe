@@ -1,6 +1,6 @@
 //! Test metrics calculation.
 
-use crate::truth::{ExpectedApp, ExpectedDependency, ExpectedPort, Truth};
+use crate::truth::Truth;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use xcprobe_bundle_schema::PackPlan;

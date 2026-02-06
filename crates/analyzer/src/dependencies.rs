@@ -149,7 +149,7 @@ pub fn detect_dependencies(bundle: &Bundle, clusters: &mut [AppCluster]) -> Resu
             let name_lower = env_var.name.to_lowercase();
 
             // Check for dependency-related env vars
-            let dep_patterns = [
+            let dep_patterns: &[(&str, &[&str])] = &[
                 (
                     "database",
                     &["database_url", "db_url", "db_host", "postgres", "mysql"],
