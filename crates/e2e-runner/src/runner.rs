@@ -184,7 +184,17 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Make it executable
     let chmod = Command::new("docker")
-        .args(["compose", "-f", compose_file, "exec", "-T", "host-sim", "chmod", "+x", "/probe-cli"])
+        .args([
+            "compose",
+            "-f",
+            compose_file,
+            "exec",
+            "-T",
+            "host-sim",
+            "chmod",
+            "+x",
+            "/probe-cli",
+        ])
         .current_dir(scenario_path)
         .output()
         .context("Failed to chmod probe-cli")?;
@@ -196,9 +206,24 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Run probe-cli inside the host-sim container
     let output = Command::new("docker")
-        .args(["compose", "-f", compose_file, "exec", "-T", "host-sim",
-               "/probe-cli", "collect", "--target", "localhost", "--os", "linux",
-               "--mode", "local-ephemeral", "--out", "/tmp/bundle.tgz"])
+        .args([
+            "compose",
+            "-f",
+            compose_file,
+            "exec",
+            "-T",
+            "host-sim",
+            "/probe-cli",
+            "collect",
+            "--target",
+            "localhost",
+            "--os",
+            "linux",
+            "--mode",
+            "local-ephemeral",
+            "--out",
+            "/tmp/bundle.tgz",
+        ])
         .current_dir(scenario_path)
         .output()
         .context("Failed to run probe-cli")?;
@@ -210,7 +235,13 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 
     // Copy bundle out of container
     let copy_output = Command::new("docker")
-        .args(["compose", "-f", compose_file, "cp", "host-sim:/tmp/bundle.tgz"])
+        .args([
+            "compose",
+            "-f",
+            compose_file,
+            "cp",
+            "host-sim:/tmp/bundle.tgz",
+        ])
         .arg(bundle_path)
         .current_dir(scenario_path)
         .output()
