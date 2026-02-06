@@ -22,7 +22,7 @@ pub fn score_processes(manifest: &Manifest) -> HashMap<u32, ProcessScore> {
 
     // Score based on process characteristics
     for process in &manifest.processes {
-        let mut score = 0.5; // Base score
+        let mut score: f64 = 0.5; // Base score
         let mut reasons = Vec::new();
 
         // System process detection (lower score)
@@ -135,7 +135,7 @@ pub fn score_services(manifest: &Manifest) -> HashMap<String, f64> {
     ];
 
     for service in &manifest.services {
-        let mut score = 0.5;
+        let mut score: f64 = 0.5;
 
         // Check system patterns
         let name_lower = service.name.to_lowercase();
