@@ -238,7 +238,10 @@ fn analyze_bundle(
     Ok(plan)
 }
 
-fn generate_artifacts(plan: &xcprobe_bundle_schema::PackPlan, output_dir: &std::path::Path) -> Result<()> {
+fn generate_artifacts(
+    plan: &xcprobe_bundle_schema::PackPlan,
+    output_dir: &std::path::Path,
+) -> Result<()> {
     for cluster in &plan.clusters {
         let cluster_dir = output_dir.join(&cluster.id);
         std::fs::create_dir_all(&cluster_dir)?;
