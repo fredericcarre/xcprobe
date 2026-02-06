@@ -10,14 +10,23 @@ use xcprobe_bundle_schema::{AppCluster, Bundle, DagEdge, Decision, DependencyInf
 
 /// Pattern to detect connection strings and endpoints.
 static ENDPOINT_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)(?:(?:mongodb|mysql|postgres|postgresql|redis|amqp|http|https)://[^\s\"']+|(?:host|hostname|server|endpoint)\s*[=:]\s*[\"\']?([^\s\"',]+)[\"\']?|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?)")
-        .unwrap()
+    Regex::new(concat!(
+        r"(?i)(?:",
+        r"(?:mongodb|mysql|postgres|postgresql|redis|amqp|http|https)://[^\s]+",
+        r"|(?:host|hostname|server|endpoint)\s*[=:]\s*[^\s,]+",
+        r"|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::(\d+))?",
+        r")"
+    ))
+    .unwrap()
 });
 
 /// Pattern to detect database/cache hostnames.
 static DB_HOST_PATTERN: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)(?:database|db|redis|cache|mongo|postgres|mysql|rabbit|kafka)[-_]?(?:host|server|endpoint|url)\s*[=:]\s*[\"\']?([^\s\"',]+)")
-        .unwrap()
+    Regex::new(concat!(
+        r"(?i)(?:database|db|redis|cache|mongo|postgres|mysql|rabbit|kafka)",
+        r"[-_]?(?:host|server|endpoint|url)\s*[=:]\s*([^\s,]+)"
+    ))
+    .unwrap()
 });
 
 /// Detect dependencies for clusters.
