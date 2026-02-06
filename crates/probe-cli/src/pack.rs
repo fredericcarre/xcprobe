@@ -1,7 +1,6 @@
 //! Pack plan generation and execution.
 
-use anyhow::{Context, Result};
-use std::collections::HashMap;
+use anyhow::Result;
 use std::path::{Path, PathBuf};
 use tracing::info;
 use xcprobe_bundle_schema::{Bundle, ConfigFileSpec, PackPlan};

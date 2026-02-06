@@ -3,16 +3,13 @@
 use crate::commands::{CommandSet, LinuxCommands, WindowsCommands};
 use crate::executor::{Executor, LocalExecutor, SshExecutor, WinRmExecutor};
 use crate::parsers;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::Utc;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
-use tracing::{debug, info, warn};
-use xcprobe_bundle_schema::{
-    AuditEntry, AuditLog, Bundle, Evidence, EvidenceType, FileInfo, Manifest, PortInfo,
-    ProcessInfo, ServiceInfo, SystemInfo,
-};
+use tracing::{debug, info};
+use xcprobe_bundle_schema::{AuditEntry, AuditLog, Bundle, Evidence, FileInfo, Manifest};
 use xcprobe_common::OsType;
 use xcprobe_redaction::Redactor;
 
@@ -96,7 +93,7 @@ impl Collector {
         info!("Collecting system information...");
         self.collect_system_info(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -107,7 +104,7 @@ impl Collector {
         info!("Collecting process information...");
         self.collect_processes(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -118,7 +115,7 @@ impl Collector {
         info!("Collecting service information...");
         self.collect_services(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -129,7 +126,7 @@ impl Collector {
         info!("Collecting port information...");
         self.collect_ports(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -140,7 +137,7 @@ impl Collector {
         info!("Collecting package information...");
         self.collect_packages(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -151,7 +148,7 @@ impl Collector {
         info!("Collecting scheduled tasks...");
         self.collect_scheduled_tasks(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -162,7 +159,7 @@ impl Collector {
         info!("Collecting configuration files...");
         self.collect_config_files(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,
@@ -173,7 +170,7 @@ impl Collector {
         info!("Collecting log snippets...");
         self.collect_logs(
             &*executor,
-            &commands,
+            commands.as_ref(),
             &mut manifest,
             &mut audit_log,
             &mut evidence,

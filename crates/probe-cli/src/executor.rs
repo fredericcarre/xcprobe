@@ -103,7 +103,7 @@ impl SshExecutor {
                 .list_identities()
                 .context("Failed to list SSH agent identities")?;
 
-            let identities: Vec<_> = agent.identities()?.collect();
+            let identities = agent.identities()?;
             let mut authenticated = false;
 
             for identity in identities {
@@ -290,8 +290,6 @@ impl Executor for WinRmExecutor {
 
 /// Simple base64 encoding (to avoid adding another dependency).
 fn base64_encode(data: &[u8]) -> String {
-    use std::io::Write;
-    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::none());
     // Just use a simple base64 implementation
     const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

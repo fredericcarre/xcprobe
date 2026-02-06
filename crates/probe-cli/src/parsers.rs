@@ -1,6 +1,6 @@
 //! Parsers for command outputs.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use regex::Regex;
 use std::collections::HashMap;
 use xcprobe_bundle_schema::{Package, PortInfo, ProcessInfo, ScheduledTask, ServiceInfo};
