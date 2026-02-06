@@ -1,0 +1,12 @@
+# Scenario B: Wrapper script with external env files
+services:
+  host-sim:
+    build:
+      context: ./host-sim
+    hostname: test-host-b
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

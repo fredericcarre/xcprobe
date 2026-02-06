@@ -1,0 +1,55 @@
+# Scenario A: Basic multi-process host
+# Simulates a host with multiple business processes running via supervisor
+
+services:
+  # The "host" that runs multiple processes
+  host-sim:
+    build:
+      context: ./host-sim
+      dockerfile: Dockerfile
+    hostname: test-host
+    volumes:
+      - ./apps:/apps:ro
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "pgrep", "supervisord"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Simulated external database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: appdb
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Simulated external Redis
+  redis:
+    image: redis:7-alpine
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # External API mock
+  external-api:
+    image: nginx:alpine
+    networks:
+      - internal
+
+networks:
+  internal:
+    driver: bridge

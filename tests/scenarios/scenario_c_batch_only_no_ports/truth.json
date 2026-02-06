@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "name": "scenario_c_batch_only_no_ports",
+  "description": "Batch job with no network ports, only periodic execution and logs",
+  "applications": [
+    {
+      "name": "batch-processor",
+      "app_type": "batch",
+      "command_patterns": ["python3", "batch.py"],
+      "user": "batch-user",
+      "working_directory": "/opt/batch"
+    }
+  ],
+  "ports": [],
+  "env_names": [
+    "BATCH_INPUT_DIR",
+    "BATCH_OUTPUT_DIR",
+    "DATABASE_URL"
+  ],
+  "dependencies": [],
+  "config_files": [
+    "/etc/batch/config.yaml"
+  ],
+  "thresholds": {
+    "process_cmdline_recall": 0.8,
+    "ports_recall": 1.0,
+    "env_names_recall": 0.6,
+    "deps_recall": 0.5,
+    "require_all_evidence": false
+  }
+}

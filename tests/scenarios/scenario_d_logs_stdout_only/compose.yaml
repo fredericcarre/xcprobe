@@ -1,0 +1,10 @@
+# Scenario D: Logs to stdout only (12-factor)
+services:
+  host-sim:
+    image: node:20-alpine
+    hostname: test-host-d
+    working_dir: /app
+    command: ["sleep", "infinity"]
+    environment:
+      NODE_ENV: production
+      PORT: "3000"

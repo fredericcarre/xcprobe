@@ -1,0 +1,39 @@
+[package]
+name = "probe-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "probe-cli"
+path = "src/main.rs"
+
+[dependencies]
+xcprobe-common = { path = "../common" }
+xcprobe-bundle-schema = { path = "../bundle-schema" }
+xcprobe-redaction = { path = "../redaction" }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+ssh2 = { workspace = true }
+reqwest = { workspace = true }
+regex = { workspace = true }
+async-trait = "0.1"
+base64 = "0.21"
+flate2 = { workspace = true }
+tar = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+assert_fs = { workspace = true }
+predicates = { workspace = true }
+tempfile = "3.9"

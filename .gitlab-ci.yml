@@ -1,0 +1,96 @@
+# GitLab CI Configuration for XCProbe
+
+stages:
+  - build
+  - test
+  - e2e
+  - report
+
+variables:
+  CARGO_HOME: $CI_PROJECT_DIR/.cargo
+  RUSTFLAGS: "-D warnings"
+
+cache:
+  key: $CI_COMMIT_REF_SLUG
+  paths:
+    - .cargo/
+    - target/
+
+build:
+  stage: build
+  image: rust:latest
+  script:
+    - rustup component add clippy rustfmt
+    - cargo fmt --all -- --check
+    - cargo clippy --all-targets --all-features
+    - cargo build --release
+    - cargo test --all
+  artifacts:
+    paths:
+      - target/release/probe-cli
+      - target/release/analyzer
+      - target/release/e2e-runner
+    expire_in: 1 hour
+
+.e2e_template: &e2e_template
+  stage: e2e
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  dependencies:
+    - build
+  before_script:
+    - apk add --no-cache bash
+    - chmod +x target/release/*
+    - export PATH="$PWD/target/release:$PATH"
+  script:
+    - e2e-runner run --scenario tests/scenarios/$SCENARIO --artifacts ./artifacts/$SCENARIO --timeout 300
+  artifacts:
+    when: on_failure
+    paths:
+      - artifacts/*/bundle.tgz
+      - artifacts/*/report.json
+      - artifacts/*/packplan.json
+    expire_in: 1 week
+
+e2e:scenario_a:
+  <<: *e2e_template
+  variables:
+    SCENARIO: scenario_a_basic_multi_proc_host
+
+e2e:scenario_b:
+  <<: *e2e_template
+  variables:
+    SCENARIO: scenario_b_wrapper_and_env_files
+
+e2e:scenario_c:
+  <<: *e2e_template
+  variables:
+    SCENARIO: scenario_c_batch_only_no_ports
+
+e2e:scenario_d:
+  <<: *e2e_template
+  variables:
+    SCENARIO: scenario_d_logs_stdout_only
+
+report:
+  stage: report
+  image: rust:latest
+  dependencies:
+    - build
+    - e2e:scenario_a
+    - e2e:scenario_b
+    - e2e:scenario_c
+    - e2e:scenario_d
+  script:
+    - chmod +x target/release/e2e-runner
+    - target/release/e2e-runner report --results ./artifacts --format text
+  when: always
+
+security:
+  stage: test
+  image: rust:latest
+  script:
+    - cargo install cargo-audit
+    - cargo audit
+  allow_failure: true

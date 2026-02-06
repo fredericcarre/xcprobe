@@ -1,0 +1,2 @@
+JAVA_OPTS=-Xmx512m -Xms256m
+DATABASE_URL=jdbc:postgresql://db:5432/appdb

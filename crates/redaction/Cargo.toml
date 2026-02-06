@@ -1,0 +1,13 @@
+[package]
+name = "xcprobe-redaction"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+xcprobe-common = { path = "../common" }
+regex = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+pretty_assertions = "1.4"

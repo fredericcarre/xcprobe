@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "name": "scenario_b_wrapper_and_env_files",
+  "description": "Service started via wrapper script with external env files",
+  "applications": [
+    {
+      "name": "wrapped-app",
+      "app_type": "api",
+      "command_patterns": ["java", "-jar", "app.jar"],
+      "user": "appuser",
+      "working_directory": "/opt/wrapped-app"
+    }
+  ],
+  "ports": [
+    {"port": 8080, "protocol": "tcp"}
+  ],
+  "env_names": [
+    "JAVA_OPTS",
+    "APP_CONFIG_PATH",
+    "DATABASE_URL",
+    "LOG_PATH"
+  ],
+  "dependencies": [],
+  "config_files": [
+    "/etc/wrapped-app/app.conf",
+    "/etc/wrapped-app/env"
+  ],
+  "thresholds": {
+    "process_cmdline_recall": 0.8,
+    "ports_recall": 0.9,
+    "env_names_recall": 0.6,
+    "deps_recall": 0.5,
+    "require_all_evidence": false
+  }
+}

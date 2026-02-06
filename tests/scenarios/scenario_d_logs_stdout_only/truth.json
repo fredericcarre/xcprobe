@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "name": "scenario_d_logs_stdout_only",
+  "description": "Application that logs only to stdout (12-factor style)",
+  "applications": [
+    {
+      "name": "stdout-app",
+      "app_type": "api",
+      "command_patterns": ["node", "server.js"],
+      "user": "node",
+      "working_directory": "/app"
+    }
+  ],
+  "ports": [
+    {"port": 3000, "protocol": "tcp"}
+  ],
+  "env_names": [
+    "NODE_ENV",
+    "PORT",
+    "DATABASE_URL"
+  ],
+  "dependencies": [],
+  "config_files": [],
+  "thresholds": {
+    "process_cmdline_recall": 0.8,
+    "ports_recall": 0.9,
+    "env_names_recall": 0.5,
+    "deps_recall": 0.5,
+    "require_all_evidence": false
+  }
+}

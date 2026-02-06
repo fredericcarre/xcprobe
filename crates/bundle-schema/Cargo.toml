@@ -1,0 +1,14 @@
+[package]
+name = "xcprobe-bundle-schema"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+xcprobe-common = { path = "../common" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+jsonschema = { workspace = true }
+uuid = { workspace = true }

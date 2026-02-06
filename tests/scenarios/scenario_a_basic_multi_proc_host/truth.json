@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "name": "scenario_a_basic_multi_proc_host",
+  "description": "Basic multi-process host with API, worker, and metrics exporter running via supervisor",
+  "applications": [
+    {
+      "name": "api",
+      "app_type": "api",
+      "command_patterns": ["python3", "app.py"],
+      "user": "api-user",
+      "working_directory": "/opt/api"
+    },
+    {
+      "name": "worker",
+      "app_type": "worker",
+      "command_patterns": ["python3", "worker.py"],
+      "user": "worker-user",
+      "working_directory": "/opt/worker"
+    },
+    {
+      "name": "metrics-exporter",
+      "app_type": "api",
+      "command_patterns": ["python3", "exporter.py"],
+      "user": null,
+      "working_directory": "/opt/metrics"
+    }
+  ],
+  "ports": [
+    {"port": 8080, "protocol": "tcp", "process_name": "python3"},
+    {"port": 8081, "protocol": "tcp", "process_name": "python3"}
+  ],
+  "env_names": [
+    "DATABASE_URL",
+    "REDIS_URL",
+    "API_PORT",
+    "LOG_LEVEL",
+    "WORKER_CONCURRENCY",
+    "METRICS_PORT",
+    "EXTERNAL_API_URL"
+  ],
+  "dependencies": [
+    {"from": "api", "to": "db", "dep_type": "database"},
+    {"from": "api", "to": "redis", "dep_type": "cache"},
+    {"from": "worker", "to": "db", "dep_type": "database"},
+    {"from": "worker", "to": "redis", "dep_type": "cache"}
+  ],
+  "config_files": [
+    "/etc/default/api",
+    "/etc/default/worker"
+  ],
+  "thresholds": {
+    "process_cmdline_recall": 0.8,
+    "ports_recall": 0.9,
+    "env_names_recall": 0.7,
+    "deps_recall": 0.5,
+    "require_all_evidence": false
+  }
+}

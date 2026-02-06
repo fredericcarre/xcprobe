@@ -1,0 +1,6 @@
+# Scenario C: Batch job with no ports
+services:
+  host-sim:
+    image: debian:bookworm-slim
+    hostname: test-host-c
+    command: ["sleep", "infinity"]

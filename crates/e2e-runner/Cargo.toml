@@ -1,0 +1,24 @@
+[package]
+name = "xcprobe-e2e-runner"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "e2e-runner"
+path = "src/main.rs"
+
+[dependencies]
+xcprobe-common = { path = "../common" }
+xcprobe-bundle-schema = { path = "../bundle-schema" }
+
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }
+flate2 = { workspace = true }
+tar = { workspace = true }
