@@ -1,9 +1,7 @@
 //! Docker artifact generation.
 
 use anyhow::Result;
-use handlebars::Handlebars;
-use serde_json::json;
-use xcprobe_bundle_schema::{AppCluster, ConfigFileSpec, PackPlan, ReadinessCheck};
+use xcprobe_bundle_schema::{AppCluster, ConfigFileSpec, PackPlan};
 
 /// Generate Dockerfile for a cluster.
 pub fn generate_dockerfile(cluster: &AppCluster) -> Result<String> {

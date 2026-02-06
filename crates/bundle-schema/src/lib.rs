@@ -17,7 +17,7 @@ pub use manifest::{
     ScheduledTask, ServiceInfo, SystemInfo,
 };
 pub use packplan::{
-    AppCluster, ConfigFileSpec, DagEdge, Decision, DependencyInfo, GeneratedArtifact, PackPlan,
-    ReadinessCheck,
+    AppCluster, ClusterPort, ClusterProcess, ClusterService, ConfigFileSpec, DagEdge, Decision,
+    DependencyInfo, EnvVarSpec, GeneratedArtifact, PackPlan, ReadinessCheck,
 };
 pub use validation::validate_bundle;
