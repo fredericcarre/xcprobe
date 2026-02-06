@@ -16,5 +16,8 @@ pub use manifest::{
     Bundle, EnvironmentFile, FileInfo, Manifest, NetworkConnection, Package, PortInfo, ProcessInfo,
     ScheduledTask, ServiceInfo, SystemInfo,
 };
-pub use packplan::{AppCluster, DependencyInfo, GeneratedArtifact, PackPlan, ReadinessCheck};
+pub use packplan::{
+    AppCluster, ConfigFileSpec, DagEdge, Decision, DependencyInfo, GeneratedArtifact, PackPlan,
+    ReadinessCheck,
+};
 pub use validation::validate_bundle;
