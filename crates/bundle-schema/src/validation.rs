@@ -137,7 +137,7 @@ pub fn validate_packplan(packplan: &Value) -> Result<ValidationResult, Validatio
 pub fn validate_bundle(
     manifest: &crate::Manifest,
     evidence_files: &HashSet<String>,
-    checksums: &std::collections::HashMap<String, String>,
+    _checksums: &std::collections::HashMap<String, String>,
 ) -> Result<ValidationResult, ValidationError> {
     let mut result = ValidationResult::new();
 

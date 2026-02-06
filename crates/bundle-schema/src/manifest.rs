@@ -3,8 +3,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::PathBuf;
-use xcprobe_common::OsType;
 
 /// The complete bundle structure (in-memory representation).
 #[derive(Debug, Clone, Serialize, Deserialize)]

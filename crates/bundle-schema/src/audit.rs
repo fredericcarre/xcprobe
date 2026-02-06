@@ -2,7 +2,6 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 /// A single audit log entry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +34,7 @@ pub struct AuditEntry {
 
 impl AuditEntry {
     /// Create a new audit entry.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         seq: u64,
         command: String,
