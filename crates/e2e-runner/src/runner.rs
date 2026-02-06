@@ -160,8 +160,44 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
 }
 
 async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf> {
-    // Get the host-sim container name
     let compose_path = scenario_path.join("compose.yaml");
+
+    // Find probe-cli binary (should be in PATH or current directory)
+    let probe_cli_path = which::which("probe-cli")
+        .or_else(|_| which::which("./bin/probe-cli"))
+        .context("probe-cli binary not found in PATH")?;
+
+    info!("Copying probe-cli to container from {:?}", probe_cli_path);
+
+    // Copy probe-cli into the container
+    let copy_binary = Command::new("docker")
+        .args(["compose", "-f"])
+        .arg(&compose_path)
+        .args(["cp"])
+        .arg(&probe_cli_path)
+        .arg("host-sim:/probe-cli")
+        .current_dir(scenario_path)
+        .output()
+        .context("Failed to copy probe-cli to container")?;
+
+    if !copy_binary.status.success() {
+        let stderr = String::from_utf8_lossy(&copy_binary.stderr);
+        anyhow::bail!("Failed to copy probe-cli to container: {}", stderr);
+    }
+
+    // Make it executable
+    let chmod = Command::new("docker")
+        .args(["compose", "-f"])
+        .arg(&compose_path)
+        .args(["exec", "-T", "host-sim", "chmod", "+x", "/probe-cli"])
+        .current_dir(scenario_path)
+        .output()
+        .context("Failed to chmod probe-cli")?;
+
+    if !chmod.status.success() {
+        let stderr = String::from_utf8_lossy(&chmod.stderr);
+        anyhow::bail!("Failed to chmod probe-cli: {}", stderr);
+    }
 
     // Run probe-cli inside the host-sim container
     let output = Command::new("docker")
