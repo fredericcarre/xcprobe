@@ -265,7 +265,13 @@ pub fn parse_ports(output: &str, os_type: OsType) -> Result<Vec<PortInfo>> {
 
 fn parse_linux_ports(output: &str) -> Result<Vec<PortInfo>> {
     let mut ports = Vec::new();
-    let re = Regex::new(r"(?P<proto>tcp|udp)\s+\w+\s+\w+\s+(?P<local>\S+):(?P<port>\d+)\s+\S+\s+(?P<state>\w+)?\s*(?:users:\(\(\"(?P<name>[^\"]+)\",pid=(?P<pid>\d+))?")?;
+    // Pattern for ss -lntup output
+    let re = Regex::new(concat!(
+        r"(?P<proto>tcp|udp)\s+\w+\s+\w+\s+",
+        r"(?P<local>\S+):(?P<port>\d+)\s+\S+\s*",
+        r"(?P<state>\w+)?\s*",
+        r"(?:users:\(\([^)]+,pid=(?P<pid>\d+))?",
+    ))?;
 
     for line in output.lines().skip(1) {
         if let Some(caps) = re.captures(line) {
