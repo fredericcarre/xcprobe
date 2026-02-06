@@ -4,7 +4,6 @@ use crate::entropy::{looks_like_token, DEFAULT_ENTROPY_THRESHOLD};
 use crate::patterns::{self, is_sensitive_key};
 use crate::{hash_placeholder, REDACTED_PLACEHOLDER};
 use regex::Regex;
-use std::borrow::Cow;
 use tracing::{debug, trace};
 
 /// Configuration for the redactor.
@@ -200,10 +199,9 @@ impl Redactor {
     fn apply_entropy_redaction(&self, content: &str, stats: &mut RedactionStats) -> String {
         // Split content into words and check each for high entropy
         let mut result = String::with_capacity(content.len());
-        let mut chars = content.chars().peekable();
         let mut current_word = String::new();
 
-        while let Some(c) = chars.next() {
+        for c in content.chars() {
             if c.is_alphanumeric() || c == '_' || c == '-' || c == '+' || c == '/' || c == '=' {
                 current_word.push(c);
             } else {
