@@ -4,7 +4,9 @@ set -e
 
 # Load environment file
 if [ -f /etc/wrapped-app/env ]; then
-    export $(grep -v '^#' /etc/wrapped-app/env | xargs)
+    set -a
+    . /etc/wrapped-app/env
+    set +a
 fi
 
 export APP_CONFIG_PATH=/etc/wrapped-app/app.conf

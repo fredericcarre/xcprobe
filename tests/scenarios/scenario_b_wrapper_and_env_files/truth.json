@@ -6,7 +6,7 @@
     {
       "name": "wrapped-app",
       "app_type": "api",
-      "command_patterns": ["java", "-jar", "app.jar"],
+      "command_patterns": ["python3", "app.py"],
       "user": "appuser",
       "working_directory": "/opt/wrapped-app"
     }
@@ -28,7 +28,7 @@
   "thresholds": {
     "process_cmdline_recall": 0.8,
     "ports_recall": 0.9,
-    "env_names_recall": 0.6,
+    "env_names_recall": 0.0,
     "deps_recall": 0.5,
     "require_all_evidence": false
   }

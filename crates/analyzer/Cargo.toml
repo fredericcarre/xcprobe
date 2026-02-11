@@ -3,9 +3,9 @@ name = "xcprobe-analyzer"
 version.workspace = true
 edition.workspace = true
 
-[[bin]]
-name = "analyzer"
-path = "src/main.rs"
+[lib]
+name = "xcprobe_analyzer"
+path = "src/lib.rs"
 
 [dependencies]
 xcprobe-common = { path = "../common" }

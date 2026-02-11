@@ -47,6 +47,50 @@ pub fn score_processes(manifest: &Manifest) -> HashMap<u32, ProcessScore> {
             reasons.push("System kernel thread".to_string());
         }
 
+        // Launcher/wrapper commands: these invoke other processes but are not
+        // themselves the business application. Skip even if their cmdline
+        // contains framework keywords like "python" or "node".
+        let launcher_commands = [
+            "su",
+            "sudo",
+            "sh",
+            "bash",
+            "dash",
+            "zsh",
+            "login",
+            "sshd",
+            "init",
+            "tini",
+            "dumb-init",
+            "runuser",
+            "start-stop-daemon",
+            "supervise",
+        ];
+        let cmd_basename = process
+            .command
+            .rsplit('/')
+            .next()
+            .unwrap_or(&process.command);
+        if launcher_commands
+            .iter()
+            .any(|l| cmd_basename.eq_ignore_ascii_case(l))
+        {
+            score = 0.2;
+            reasons.push("Launcher/wrapper process".to_string());
+            // Skip further scoring — launchers should not be business processes
+            scores.insert(
+                process.pid,
+                ProcessScore {
+                    pid: process.pid,
+                    name: process.command.clone(),
+                    score,
+                    reasons,
+                    is_business_process: false,
+                },
+            );
+            continue;
+        }
+
         // Container/orchestration processes
         let container_keywords = ["docker", "containerd", "kubelet", "crio"];
         if container_keywords

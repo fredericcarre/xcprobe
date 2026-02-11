@@ -78,10 +78,9 @@ impl CommandSet for LinuxCommands {
     }
 
     fn process_cmds(&self) -> Vec<&str> {
-        vec![
-            "ps auxww",
-            "ps -eo pid,ppid,user,lstart,etime,args --sort=lstart",
-        ]
+        // Only use ps auxww; the ps -eo format is not handled by the parser
+        // and produces garbage entries when parsed as ps aux format.
+        vec!["ps auxww"]
     }
 
     fn service_list_cmd(&self) -> &str {

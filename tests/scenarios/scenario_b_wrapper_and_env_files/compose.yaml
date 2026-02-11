@@ -6,6 +6,11 @@ services:
     hostname: test-host-b
     networks:
       - internal
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8080\")'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
 networks:
   internal:

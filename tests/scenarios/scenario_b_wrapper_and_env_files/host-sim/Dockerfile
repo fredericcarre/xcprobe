@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     procps \
     iproute2 \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /opt/wrapped-app /etc/wrapped-app /var/log/apps

@@ -259,6 +259,62 @@ pub fn cluster_applications(
         clusters.push(cluster);
     }
 
+    // Third pass: assign unmatched ports to clusters.
+    // In Docker containers, ss -p may not show PIDs, leaving ports with pid=None.
+    // Try to match by process_name, then fall back to heuristics.
+    let assigned_ports: std::collections::HashSet<u16> = clusters
+        .iter()
+        .flat_map(|c| c.ports.iter().map(|p| p.port))
+        .collect();
+
+    let unmatched_ports: Vec<_> = bundle
+        .manifest
+        .ports
+        .iter()
+        .filter(|p| !assigned_ports.contains(&p.local_port))
+        // Skip Docker-internal DNS resolver ports
+        .filter(|p| p.local_address != "127.0.0.11")
+        .collect();
+
+    for port in &unmatched_ports {
+        let mut matched = false;
+
+        // Try to match by process_name to a cluster's process command
+        if let Some(ref pname) = port.process_name {
+            let pname_lower = pname.to_lowercase();
+            if let Some(cluster) = clusters.iter_mut().find(|c| {
+                c.processes.iter().any(|p| {
+                    p.command.to_lowercase().contains(&pname_lower)
+                        || pname_lower.contains(&p.command.to_lowercase())
+                })
+            }) {
+                cluster.ports.push(ClusterPort {
+                    port: port.local_port,
+                    protocol: port.protocol.clone(),
+                    purpose: None,
+                    evidence_ref: port.evidence_ref.clone(),
+                });
+                matched = true;
+            }
+        }
+
+        if matched {
+            continue;
+        }
+
+        // Fall back: assign to the first cluster (or sole cluster).
+        // When PIDs are unavailable, we can't determine which cluster owns
+        // the port, but having it in any cluster is better than losing it.
+        if !clusters.is_empty() {
+            clusters[0].ports.push(ClusterPort {
+                port: port.local_port,
+                protocol: port.protocol.clone(),
+                purpose: None,
+                evidence_ref: port.evidence_ref.clone(),
+            });
+        }
+    }
+
     Ok(clusters)
 }
 

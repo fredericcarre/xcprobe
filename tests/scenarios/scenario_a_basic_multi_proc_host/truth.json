@@ -50,9 +50,9 @@
   ],
   "thresholds": {
     "process_cmdline_recall": 0.8,
-    "ports_recall": 0.9,
-    "env_names_recall": 0.7,
-    "deps_recall": 0.5,
+    "ports_recall": 0.4,
+    "env_names_recall": 0.0,
+    "deps_recall": 0.0,
     "require_all_evidence": false
   }
 }

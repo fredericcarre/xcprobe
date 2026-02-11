@@ -1,6 +1,16 @@
 # Scenario C: Batch job with no ports
 services:
   host-sim:
-    image: debian:bookworm-slim
+    build:
+      context: ./host-sim
+      dockerfile: Dockerfile
     hostname: test-host-c
-    command: ["sleep", "infinity"]
+    environment:
+      BATCH_INPUT_DIR: /data/input
+      BATCH_OUTPUT_DIR: /data/output
+      DATABASE_URL: "postgresql://app:secret123@db:5432/appdb"
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "batch.py"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

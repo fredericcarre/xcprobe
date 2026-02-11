@@ -1,0 +1,9 @@
+# Batch processor configuration
+batch:
+  input_dir: /data/input
+  output_dir: /data/output
+  schedule: "*/5 * * * *"
+  max_retries: 3
+logging:
+  level: INFO
+  file: /var/log/batch/batch.log

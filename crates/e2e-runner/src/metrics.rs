@@ -97,7 +97,15 @@ pub fn calculate_metrics(plan: &PackPlan, truth: &Truth) -> TestMetrics {
             c.services
                 .iter()
                 .filter_map(|s| s.exec_start.clone())
-                .chain(c.processes.iter().map(|p| p.command.clone()))
+                .chain(c.processes.iter().map(|p| {
+                    // Use full command line (command + args) for better pattern matching
+                    let mut full = p.command.clone();
+                    if !p.args.is_empty() {
+                        full.push(' ');
+                        full.push_str(&p.args.join(" "));
+                    }
+                    full
+                }))
         })
         .collect();
 

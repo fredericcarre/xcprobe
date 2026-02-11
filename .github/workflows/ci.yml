@@ -11,7 +11,7 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,21 @@ jobs:
       - name: Clippy
         run: cargo clippy --all-targets --all-features -- -D warnings
 
+  build:
+    runs-on: ubuntu-latest
+    # Build in a Debian bookworm container so the binary is compatible
+    # with bookworm-based Docker images used in e2e tests (GLIBC 2.36).
+    container:
+      image: rust:1-bookworm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: apt-get update && apt-get install -y libssl-dev pkg-config
+
+      - name: Install Rust components
+        run: rustup component add clippy
+
       - name: Build
         run: cargo build --release
 
@@ -41,12 +56,11 @@ jobs:
         with:
           name: binaries
           path: |
-            target/release/probe-cli
-            target/release/analyzer
+            target/release/xcprobe
             target/release/e2e-runner
 
   e2e-tests:
-    needs: build
+    needs: [lint, build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -74,7 +88,7 @@ jobs:
 
       - name: Run E2E Test - ${{ matrix.scenario }}
         run: |
-          e2e-runner run \
+          e2e-runner --verbose run \
             --scenario tests/scenarios/${{ matrix.scenario }} \
             --artifacts ./artifacts/${{ matrix.scenario }} \
             --timeout 300

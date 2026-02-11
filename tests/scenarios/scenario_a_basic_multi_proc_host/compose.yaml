@@ -8,8 +8,6 @@ services:
       context: ./host-sim
       dockerfile: Dockerfile
     hostname: test-host
-    volumes:
-      - ./apps:/apps:ro
     networks:
       - internal
     healthcheck:

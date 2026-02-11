@@ -1,0 +1,9 @@
+{
+  "name": "stdout-app",
+  "version": "1.0.0",
+  "description": "12-factor app that logs to stdout only",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
