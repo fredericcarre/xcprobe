@@ -56,7 +56,15 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     };
 
     let compose_up = Command::new("docker")
-        .args(["compose", "-f", compose_file, "up", "-d"])
+        .args([
+            "compose",
+            "-f",
+            compose_file,
+            "up",
+            "-d",
+            "--build",
+            "--wait",
+        ])
         .current_dir(&config.scenario_path)
         .output()
         .context("Failed to run docker compose up")?;
@@ -66,9 +74,10 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
         anyhow::bail!("docker compose up failed: {}", stderr);
     }
 
-    // Step 2: Wait for services to be ready
-    info!("Waiting for services to be ready...");
-    tokio::time::sleep(Duration::from_secs(10)).await;
+    // Step 2: Wait for services to be ready (--wait flag handles healthchecks,
+    // add a small grace period for processes to fully initialize)
+    info!("Waiting for services to stabilize...");
+    tokio::time::sleep(Duration::from_secs(3)).await;
 
     // Step 3: Run probe-cli collect
     info!("Running probe-cli collect...");
@@ -161,10 +170,9 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
         "docker-compose.yaml"
     };
 
-    // Find probe-cli binary (should be in PATH or current directory)
-    let probe_cli_path = which::which("probe-cli")
-        .or_else(|_| which::which("./bin/probe-cli"))
-        .context("probe-cli binary not found in PATH")?;
+    // Find probe-cli binary: check PATH, then common build output paths
+    let probe_cli_path = find_binary("probe-cli")
+        .context("probe-cli binary not found in PATH or target/ directory")?;
 
     info!("Copying probe-cli to container from {:?}", probe_cli_path);
 
@@ -258,7 +266,11 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
 async fn run_analyzer(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
     let output_dir = plan_path.parent().unwrap();
 
-    let output = Command::new("analyzer")
+    // Find analyzer binary: check PATH, then common build output paths
+    let analyzer_path = find_binary("analyzer")
+        .context("analyzer binary not found in PATH or target/ directory")?;
+
+    let output = Command::new(&analyzer_path)
         .args(["analyze", "--bundle"])
         .arg(bundle_path)
         .args(["--out"])
@@ -272,6 +284,29 @@ async fn run_analyzer(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
     }
 
     Ok(plan_path.to_path_buf())
+}
+
+/// Find a binary by name, checking PATH first, then target/release and target/debug.
+fn find_binary(name: &str) -> Result<PathBuf> {
+    // Check PATH
+    if let Ok(path) = which::which(name) {
+        return Ok(path);
+    }
+
+    // Check target/release/
+    if let Ok(cwd) = std::env::current_dir() {
+        let release_path = cwd.join("target/release").join(name);
+        if release_path.exists() {
+            return Ok(release_path);
+        }
+
+        let debug_path = cwd.join("target/debug").join(name);
+        if debug_path.exists() {
+            return Ok(debug_path);
+        }
+    }
+
+    anyhow::bail!("{} not found in PATH or target/ directory", name)
 }
 
 fn archive_artifacts(

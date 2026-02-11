@@ -1,10 +1,11 @@
 # Scenario D: Logs to stdout only (12-factor)
 services:
   host-sim:
-    image: node:20-alpine
+    build:
+      context: ./host-sim
+      dockerfile: Dockerfile
     hostname: test-host-d
-    working_dir: /app
-    command: ["sleep", "infinity"]
     environment:
       NODE_ENV: production
       PORT: "3000"
+      DATABASE_URL: "postgresql://app:secret123@db:5432/appdb"
