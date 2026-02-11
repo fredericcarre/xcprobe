@@ -328,12 +328,6 @@ async fn run_collect(compose_file: &Path, bundle_path: &Path) -> Result<PathBuf>
             "/xcprobe",
             "collect",
             "--verbose",
-            "--target",
-            "localhost",
-            "--os",
-            "linux",
-            "--mode",
-            "local-ephemeral",
             "--out",
             "/tmp/bundle.tgz",
         ])

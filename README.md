@@ -47,10 +47,19 @@ sudo mv xcprobe /usr/local/bin/
 
 ## Usage
 
-### 1. Collect from a remote Linux host (SSH)
+### 1. Collect locally (default)
+
+```bash
+xcprobe collect --out bundle.tgz
+```
+
+The OS is auto-detected. No `--target` or `--os` needed.
+
+### 2. Collect from a remote Linux host (SSH)
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.100 \
   --os linux \
   --ssh-user admin \
@@ -62,6 +71,7 @@ You can also use password authentication:
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.100 \
   --os linux \
   --ssh-user admin \
@@ -69,10 +79,11 @@ xcprobe collect \
   --out bundle.tgz
 ```
 
-### 2. Collect from a remote Windows host (WinRM)
+### 3. Collect from a remote Windows host (WinRM)
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.200 \
   --os windows \
   --winrm-user Administrator \
@@ -81,21 +92,12 @@ xcprobe collect \
 
 # With HTTPS
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.200 \
   --os windows \
   --winrm-user Administrator \
   --winrm-password "s3cret" \
   --winrm-https \
-  --out bundle.tgz
-```
-
-### 3. Collect from localhost (testing / development)
-
-```bash
-xcprobe collect \
-  --target localhost \
-  --os linux \
-  --mode local-ephemeral \
   --out bundle.tgz
 ```
 
@@ -143,10 +145,10 @@ Commands:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--target <HOST>` | Target host (IP, hostname, or `localhost`) | *required* |
-| `--os <OS>` | Target OS: `linux` or `windows` | *required* |
 | `-o, --out <PATH>` | Output bundle path (`.tgz`) | *required* |
-| `--mode <MODE>` | `remote` or `local-ephemeral` | `remote` |
+| `--mode <MODE>` | `local-ephemeral` or `remote` | `local-ephemeral` |
+| `--target <HOST>` | Target host (IP or hostname). Required for remote mode. | auto (`localhost`) |
+| `--os <OS>` | Target OS: `linux` or `windows`. Required for remote mode. | auto-detected |
 | `--timeout <SECS>` | Collection timeout | `300` |
 | `--ssh-user <USER>` | SSH username | |
 | `--ssh-key <PATH>` | SSH private key | |

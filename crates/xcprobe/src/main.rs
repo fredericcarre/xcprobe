@@ -26,16 +26,16 @@ struct Cli {
 enum Commands {
     /// Collect system information from a target host
     Collect {
-        /// Target host (hostname or IP, or "localhost" for local collection)
+        /// Target host (hostname or IP). Required for remote mode, defaults to localhost otherwise.
         #[arg(long)]
-        target: String,
+        target: Option<String>,
 
-        /// Target operating system (linux, windows)
+        /// Target operating system (linux, windows). Auto-detected in local mode.
         #[arg(long)]
-        os: String,
+        os: Option<String>,
 
         /// Collection mode (remote, local-ephemeral)
-        #[arg(long, default_value = "remote")]
+        #[arg(long, default_value = "local-ephemeral")]
         mode: String,
 
         /// Output bundle file path
@@ -130,7 +130,26 @@ async fn main() -> anyhow::Result<()> {
             winrm_https,
             timeout,
         } => {
-            let os_type: OsType = os.parse()?;
+            let is_local = mode == "local-ephemeral" || mode == "local";
+
+            let os_type: OsType = match os {
+                Some(s) => s.parse()?,
+                None if is_local => {
+                    if cfg!(target_os = "windows") {
+                        OsType::Windows
+                    } else {
+                        OsType::Linux
+                    }
+                }
+                None => anyhow::bail!("--os is required for remote collection"),
+            };
+
+            let target = match target {
+                Some(t) => t,
+                None if is_local => "localhost".to_string(),
+                None => anyhow::bail!("--target is required for remote collection"),
+            };
+
             info!("Collecting from {} ({:?})", target, os_type);
 
             let config = xcprobe_collector::collector::CollectorConfig {
