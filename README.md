@@ -213,6 +213,20 @@ cargo run --bin e2e-runner -- run-all --scenarios-dir tests/scenarios
 cargo run --bin e2e-runner -- run --scenario tests/scenarios/scenario_a_basic_multi_proc_host
 ```
 
+### Publish a release
+
+Pushing a version tag triggers the CI pipeline that builds binaries for all platforms and creates a GitHub Release automatically.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This will:
+1. Build `xcprobe` for Linux (x86_64 glibc, x86_64 musl, ARM64) and Windows (x86_64)
+2. Package each binary as `.tar.gz` (Linux) or `.zip` (Windows)
+3. Create a GitHub Release with auto-generated release notes and all binaries attached
+
 ### Project structure
 
 ```
