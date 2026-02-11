@@ -241,7 +241,9 @@ async fn run_collect(compose_file: &Path, bundle_path: &Path) -> Result<PathBuf>
     let chmod = Command::new("docker")
         .args(["compose", "-f"])
         .arg(compose_file)
-        .args(["exec", "-T", "--user", "root", "host-sim", "chmod", "+x", "/xcprobe"])
+        .args([
+            "exec", "-T", "--user", "root", "host-sim", "chmod", "+x", "/xcprobe",
+        ])
         .output()
         .context("Failed to chmod xcprobe")?;
 
