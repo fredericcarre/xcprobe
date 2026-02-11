@@ -272,9 +272,13 @@ pub fn cluster_applications(
         .ports
         .iter()
         .filter(|p| !assigned_ports.contains(&p.local_port))
+        // Skip Docker-internal DNS resolver ports
+        .filter(|p| p.local_address != "127.0.0.11")
         .collect();
 
     for port in &unmatched_ports {
+        let mut matched = false;
+
         // Try to match by process_name to a cluster's process command
         if let Some(ref pname) = port.process_name {
             let pname_lower = pname.to_lowercase();
@@ -290,12 +294,18 @@ pub fn cluster_applications(
                     purpose: None,
                     evidence_ref: port.evidence_ref.clone(),
                 });
-                continue;
+                matched = true;
             }
         }
 
-        // Fall back: if there's exactly one cluster, assign the port to it
-        if clusters.len() == 1 {
+        if matched {
+            continue;
+        }
+
+        // Fall back: assign to the first cluster (or sole cluster).
+        // When PIDs are unavailable, we can't determine which cluster owns
+        // the port, but having it in any cluster is better than losing it.
+        if !clusters.is_empty() {
             clusters[0].ports.push(ClusterPort {
                 port: port.local_port,
                 protocol: port.protocol.clone(),
