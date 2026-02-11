@@ -41,8 +41,7 @@ jobs:
         with:
           name: binaries
           path: |
-            target/release/probe-cli
-            target/release/analyzer
+            target/release/xcprobe
             target/release/e2e-runner
 
   e2e-tests:

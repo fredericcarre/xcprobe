@@ -79,30 +79,30 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     info!("Waiting for services to stabilize...");
     tokio::time::sleep(Duration::from_secs(3)).await;
 
-    // Step 3: Run probe-cli collect
-    info!("Running probe-cli collect...");
+    // Step 3: Run xcprobe collect
+    info!("Running xcprobe collect...");
     let bundle_path = config.artifacts_path.join("bundle.tgz");
 
-    let collect_result = run_probe_collect(&config.scenario_path, &bundle_path).await;
+    let collect_result = run_collect(&config.scenario_path, &bundle_path).await;
 
     let bundle_path = match collect_result {
         Ok(path) => Some(path),
         Err(e) => {
-            warn!("probe-cli collect failed: {}", e);
+            warn!("xcprobe collect failed: {}", e);
             None
         }
     };
 
-    // Step 4: Run analyzer
+    // Step 4: Run xcprobe analyze
     let plan_path = if let Some(ref bundle) = bundle_path {
-        info!("Running analyzer...");
+        info!("Running xcprobe analyze...");
         let plan_path = config.artifacts_path.join("packplan.json");
-        let analyze_result = run_analyzer(bundle, &plan_path).await;
+        let analyze_result = run_analyze(bundle, &plan_path).await;
 
         match analyze_result {
             Ok(path) => Some(path),
             Err(e) => {
-                warn!("analyzer failed: {}", e);
+                warn!("xcprobe analyze failed: {}", e);
                 None
             }
         }
@@ -163,31 +163,31 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     Ok(result)
 }
 
-async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf> {
+async fn run_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf> {
     let compose_file = if scenario_path.join("compose.yaml").exists() {
         "compose.yaml"
     } else {
         "docker-compose.yaml"
     };
 
-    // Find probe-cli binary: check PATH, then common build output paths
-    let probe_cli_path = find_binary("probe-cli")
-        .context("probe-cli binary not found in PATH or target/ directory")?;
+    // Find xcprobe binary: check PATH, then common build output paths
+    let xcprobe_path = find_binary("xcprobe")
+        .context("xcprobe binary not found in PATH or target/ directory")?;
 
-    info!("Copying probe-cli to container from {:?}", probe_cli_path);
+    info!("Copying xcprobe to container from {:?}", xcprobe_path);
 
-    // Copy probe-cli into the container
+    // Copy xcprobe into the container
     let copy_binary = Command::new("docker")
         .args(["compose", "-f", compose_file, "cp"])
-        .arg(&probe_cli_path)
-        .arg("host-sim:/probe-cli")
+        .arg(&xcprobe_path)
+        .arg("host-sim:/xcprobe")
         .current_dir(scenario_path)
         .output()
-        .context("Failed to copy probe-cli to container")?;
+        .context("Failed to copy xcprobe to container")?;
 
     if !copy_binary.status.success() {
         let stderr = String::from_utf8_lossy(&copy_binary.stderr);
-        anyhow::bail!("Failed to copy probe-cli to container: {}", stderr);
+        anyhow::bail!("Failed to copy xcprobe to container: {}", stderr);
     }
 
     // Make it executable
@@ -201,18 +201,18 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
             "host-sim",
             "chmod",
             "+x",
-            "/probe-cli",
+            "/xcprobe",
         ])
         .current_dir(scenario_path)
         .output()
-        .context("Failed to chmod probe-cli")?;
+        .context("Failed to chmod xcprobe")?;
 
     if !chmod.status.success() {
         let stderr = String::from_utf8_lossy(&chmod.stderr);
-        anyhow::bail!("Failed to chmod probe-cli: {}", stderr);
+        anyhow::bail!("Failed to chmod xcprobe: {}", stderr);
     }
 
-    // Run probe-cli inside the host-sim container
+    // Run xcprobe collect inside the host-sim container
     let output = Command::new("docker")
         .args([
             "compose",
@@ -221,7 +221,7 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
             "exec",
             "-T",
             "host-sim",
-            "/probe-cli",
+            "/xcprobe",
             "collect",
             "--target",
             "localhost",
@@ -234,11 +234,11 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
         ])
         .current_dir(scenario_path)
         .output()
-        .context("Failed to run probe-cli")?;
+        .context("Failed to run xcprobe collect")?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("probe-cli collect failed: {}", stderr);
+        anyhow::bail!("xcprobe collect failed: {}", stderr);
     }
 
     // Copy bundle out of container
@@ -263,24 +263,24 @@ async fn run_probe_collect(scenario_path: &Path, bundle_path: &Path) -> Result<P
     Ok(bundle_path.to_path_buf())
 }
 
-async fn run_analyzer(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
+async fn run_analyze(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
     let output_dir = plan_path.parent().unwrap();
 
-    // Find analyzer binary: check PATH, then common build output paths
-    let analyzer_path = find_binary("analyzer")
-        .context("analyzer binary not found in PATH or target/ directory")?;
+    // Find xcprobe binary: check PATH, then common build output paths
+    let xcprobe_path = find_binary("xcprobe")
+        .context("xcprobe binary not found in PATH or target/ directory")?;
 
-    let output = Command::new(&analyzer_path)
+    let output = Command::new(&xcprobe_path)
         .args(["analyze", "--bundle"])
         .arg(bundle_path)
         .args(["--out"])
         .arg(output_dir)
         .output()
-        .context("Failed to run analyzer")?;
+        .context("Failed to run xcprobe analyze")?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("analyzer failed: {}", stderr);
+        anyhow::bail!("xcprobe analyze failed: {}", stderr);
     }
 
     Ok(plan_path.to_path_buf())

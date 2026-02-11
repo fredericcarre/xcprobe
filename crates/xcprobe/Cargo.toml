@@ -1,0 +1,22 @@
+[package]
+name = "xcprobe"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "xcprobe"
+path = "src/main.rs"
+
+[dependencies]
+xcprobe-collector = { path = "../probe-cli" }
+xcprobe-analyzer = { path = "../analyzer" }
+xcprobe-common = { path = "../common" }
+xcprobe-bundle-schema = { path = "../bundle-schema" }
+
+tokio = { workspace = true }
+serde_json = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+chrono = { workspace = true }

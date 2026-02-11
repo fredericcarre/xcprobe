@@ -1,11 +1,11 @@
 [package]
-name = "probe-cli"
+name = "xcprobe-collector"
 version.workspace = true
 edition.workspace = true
 
-[[bin]]
-name = "probe-cli"
-path = "src/main.rs"
+[lib]
+name = "xcprobe_collector"
+path = "src/lib.rs"
 
 [dependencies]
 xcprobe-common = { path = "../common" }
