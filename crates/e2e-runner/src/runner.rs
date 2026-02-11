@@ -171,8 +171,8 @@ async fn run_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf
     };
 
     // Find xcprobe binary: check PATH, then common build output paths
-    let xcprobe_path = find_binary("xcprobe")
-        .context("xcprobe binary not found in PATH or target/ directory")?;
+    let xcprobe_path =
+        find_binary("xcprobe").context("xcprobe binary not found in PATH or target/ directory")?;
 
     info!("Copying xcprobe to container from {:?}", xcprobe_path);
 
@@ -267,8 +267,8 @@ async fn run_analyze(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
     let output_dir = plan_path.parent().unwrap();
 
     // Find xcprobe binary: check PATH, then common build output paths
-    let xcprobe_path = find_binary("xcprobe")
-        .context("xcprobe binary not found in PATH or target/ directory")?;
+    let xcprobe_path =
+        find_binary("xcprobe").context("xcprobe binary not found in PATH or target/ directory")?;
 
     let output = Command::new(&xcprobe_path)
         .args(["analyze", "--bundle"])

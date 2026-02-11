@@ -53,10 +53,7 @@ pub fn analyze_bundle(
 }
 
 /// Generate Docker artifacts from a pack plan.
-pub fn generate_artifacts(
-    plan: &PackPlan,
-    output_dir: &std::path::Path,
-) -> Result<()> {
+pub fn generate_artifacts(plan: &PackPlan, output_dir: &std::path::Path) -> Result<()> {
     for cluster in &plan.clusters {
         let cluster_dir = output_dir.join(&cluster.id);
         std::fs::create_dir_all(&cluster_dir)?;
