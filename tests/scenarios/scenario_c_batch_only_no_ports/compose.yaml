@@ -9,3 +9,8 @@ services:
       BATCH_INPUT_DIR: /data/input
       BATCH_OUTPUT_DIR: /data/output
       DATABASE_URL: "postgresql://app:secret123@db:5432/appdb"
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "batch.py"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

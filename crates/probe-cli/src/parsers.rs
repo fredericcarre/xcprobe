@@ -270,12 +270,13 @@ pub fn parse_ports(output: &str, os_type: OsType) -> Result<Vec<PortInfo>> {
 
 fn parse_linux_ports(output: &str) -> Result<Vec<PortInfo>> {
     let mut ports = Vec::new();
-    // Pattern for ss -lntup output
+    // Pattern for ss -lntup output:
+    //   Netid  State  Recv-Q  Send-Q  Local Address:Port  Peer Address:Port  Process
+    //   tcp    LISTEN 0       128     0.0.0.0:8080        0.0.0.0:*          users:(("python3",pid=7,fd=3))
     let re = Regex::new(concat!(
-        r"(?P<proto>tcp|udp)\s+\w+\s+\w+\s+",
-        r"(?P<local>\S+):(?P<port>\d+)\s+\S+\s*",
-        r"(?P<state>\w+)?\s*",
-        r"(?:users:\(\([^)]+,pid=(?P<pid>\d+))?",
+        r"(?P<proto>tcp|udp)\s+(?P<state>\w+)\s+\d+\s+\d+\s+",
+        r"(?P<local>\S+):(?P<port>\d+)\s+\S+:\S+\s*",
+        r#"(?:users:\(\("(?P<name>[^"]+)",pid=(?P<pid>\d+))?"#,
     ))?;
 
     for line in output.lines().skip(1) {
@@ -489,6 +490,26 @@ www-data  1234  0.5  1.2 123456 12345 ?        Sl   Jan01   1:23 nginx: worker p
         assert_eq!(procs[0].user, "root");
         assert_eq!(procs[0].pid, 1);
         assert_eq!(procs[1].command, "nginx:");
+    }
+
+    #[test]
+    fn test_parse_linux_ports() {
+        let output = r#"Netid State  Recv-Q Send-Q   Local Address:Port   Peer Address:Port  Process
+tcp   LISTEN 0      128        0.0.0.0:8080        0.0.0.0:*      users:(("python3",pid=7,fd=3))
+tcp   LISTEN 0      128        0.0.0.0:8081        0.0.0.0:*      users:(("python3",pid=12,fd=4))
+udp   UNCONN 0      0          0.0.0.0:5353        0.0.0.0:*
+"#;
+        let ports = parse_linux_ports(output).unwrap();
+        assert_eq!(ports.len(), 3);
+        assert_eq!(ports[0].local_port, 8080);
+        assert_eq!(ports[0].protocol, "tcp");
+        assert_eq!(ports[0].pid, Some(7));
+        assert_eq!(ports[0].process_name, Some("python3".to_string()));
+        assert_eq!(ports[1].local_port, 8081);
+        assert_eq!(ports[1].pid, Some(12));
+        assert_eq!(ports[2].local_port, 5353);
+        assert_eq!(ports[2].protocol, "udp");
+        assert_eq!(ports[2].pid, None);
     }
 
     #[test]

@@ -7,7 +7,7 @@
       "name": "stdout-app",
       "app_type": "api",
       "command_patterns": ["node", "server.js"],
-      "user": "node",
+      "user": "node-app",
       "working_directory": "/app"
     }
   ],

@@ -1,7 +1,13 @@
 # Scenario D: Logs to stdout only (12-factor)
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-RUN adduser -D -s /bin/sh node-app
+RUN apt-get update && apt-get install -y \
+    procps \
+    iproute2 \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN adduser --disabled-password --gecos '' node-app
 
 RUN mkdir -p /app && chown node-app:node-app /app
 WORKDIR /app

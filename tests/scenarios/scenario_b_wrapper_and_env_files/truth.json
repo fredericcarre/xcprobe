@@ -6,7 +6,7 @@
     {
       "name": "wrapped-app",
       "app_type": "api",
-      "command_patterns": ["java", "-jar", "app.jar"],
+      "command_patterns": ["python3", "app.py"],
       "user": "appuser",
       "working_directory": "/opt/wrapped-app"
     }
