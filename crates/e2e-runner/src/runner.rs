@@ -163,6 +163,25 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
         let plan_content = std::fs::read_to_string(plan)?;
         let pack_plan: xcprobe_bundle_schema::PackPlan = serde_json::from_str(&plan_content)?;
 
+        // Debug: log what the plan contains
+        info!("Pack plan has {} clusters", pack_plan.clusters.len());
+        for cluster in &pack_plan.clusters {
+            info!(
+                "  Cluster '{}': {} processes, {} ports, {} env_vars, confidence={:.2}",
+                cluster.name,
+                cluster.processes.len(),
+                cluster.ports.len(),
+                cluster.env_vars.len(),
+                cluster.confidence
+            );
+            for p in &cluster.processes {
+                info!("    Process: {} {:?}", p.command, p.args);
+            }
+            for port in &cluster.ports {
+                info!("    Port: {}/{}", port.port, port.protocol);
+            }
+        }
+
         let metrics = calculate_metrics(&pack_plan, &truth);
         let failures = check_thresholds(&metrics, &truth);
 
@@ -276,6 +295,26 @@ async fn run_collect(compose_file: &Path, bundle_path: &Path) -> Result<PathBuf>
         }
     }
 
+    // Debug: check what ss sees inside the container
+    let ss_check = Command::new("docker")
+        .args(["compose", "-f"])
+        .arg(compose_file)
+        .args([
+            "exec",
+            "-T",
+            "--user",
+            "root",
+            "host-sim",
+            "sh",
+            "-c",
+            "echo '=== ss -lntup ===' && ss -lntup 2>&1 && echo '=== ps auxww ===' && ps auxww 2>&1",
+        ])
+        .output();
+    if let Ok(ss_out) = ss_check {
+        let stdout = String::from_utf8_lossy(&ss_out.stdout);
+        info!("Container state before collect:\n{}", stdout);
+    }
+
     // Run xcprobe collect inside the host-sim container
     let output = Command::new("docker")
         .args(["compose", "-f"])
@@ -301,17 +340,22 @@ async fn run_collect(compose_file: &Path, bundle_path: &Path) -> Result<PathBuf>
         .output()
         .context("Failed to run xcprobe collect")?;
 
-    if !output.status.success() {
+    {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
         if !stdout.is_empty() {
-            warn!("xcprobe collect stdout:\n{}", stdout);
+            info!("xcprobe collect stdout:\n{}", stdout);
         }
-        anyhow::bail!(
-            "xcprobe collect failed (exit {}): {}",
-            output.status,
-            stderr
-        );
+        if !stderr.is_empty() {
+            info!("xcprobe collect stderr:\n{}", stderr);
+        }
+        if !output.status.success() {
+            anyhow::bail!(
+                "xcprobe collect failed (exit {}): {}",
+                output.status,
+                stderr
+            );
+        }
     }
 
     // Copy bundle out of container to local filesystem
