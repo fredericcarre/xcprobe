@@ -74,18 +74,52 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     // Create artifacts directory
     std::fs::create_dir_all(&artifacts_path)?;
 
-    // Step 1: Start docker-compose
-    info!("Starting docker-compose...");
+    // Step 1: Build images first (separate from up to get clearer errors)
+    info!("Building docker images...");
+    let compose_build = Command::new("docker")
+        .args(["compose", "-f"])
+        .arg(&compose_file)
+        .args(["build"])
+        .output()
+        .context("Failed to run docker compose build")?;
+
+    if !compose_build.status.success() {
+        let stdout = String::from_utf8_lossy(&compose_build.stdout);
+        let stderr = String::from_utf8_lossy(&compose_build.stderr);
+        anyhow::bail!(
+            "docker compose build failed:\nstdout: {}\nstderr: {}",
+            stdout,
+            stderr
+        );
+    }
+
+    // Step 1b: Start services
+    info!("Starting docker-compose services...");
     let compose_up = Command::new("docker")
         .args(["compose", "-f"])
         .arg(&compose_file)
-        .args(["up", "-d", "--build", "--wait"])
+        .args(["up", "-d", "--wait"])
         .output()
         .context("Failed to run docker compose up")?;
 
     if !compose_up.status.success() {
+        let stdout = String::from_utf8_lossy(&compose_up.stdout);
         let stderr = String::from_utf8_lossy(&compose_up.stderr);
-        anyhow::bail!("docker compose up failed: {}", stderr);
+        // Grab container logs for debugging
+        let logs = Command::new("docker")
+            .args(["compose", "-f"])
+            .arg(&compose_file)
+            .args(["logs", "--tail", "50"])
+            .output();
+        let container_logs = logs
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+            .unwrap_or_default();
+        anyhow::bail!(
+            "docker compose up failed:\nstdout: {}\nstderr: {}\ncontainer logs:\n{}",
+            stdout,
+            stderr,
+            container_logs
+        );
     }
 
     // Step 2: Wait for services to be ready (--wait flag handles healthchecks,
