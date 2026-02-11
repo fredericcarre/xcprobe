@@ -45,19 +45,21 @@ chmod +x xcprobe
 sudo mv xcprobe /usr/local/bin/
 ```
 
-### Build from source
-
-```bash
-cargo build --release
-# Binary is at target/release/xcprobe
-```
-
 ## Usage
 
-### 1. Collect from a remote Linux host (SSH)
+### 1. Collect locally (default)
+
+```bash
+xcprobe collect --out bundle.tgz
+```
+
+The OS is auto-detected. No `--target` or `--os` needed.
+
+### 2. Collect from a remote Linux host (SSH)
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.100 \
   --os linux \
   --ssh-user admin \
@@ -69,6 +71,7 @@ You can also use password authentication:
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.100 \
   --os linux \
   --ssh-user admin \
@@ -76,10 +79,11 @@ xcprobe collect \
   --out bundle.tgz
 ```
 
-### 2. Collect from a remote Windows host (WinRM)
+### 3. Collect from a remote Windows host (WinRM)
 
 ```bash
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.200 \
   --os windows \
   --winrm-user Administrator \
@@ -88,21 +92,12 @@ xcprobe collect \
 
 # With HTTPS
 xcprobe collect \
+  --mode remote \
   --target 192.168.1.200 \
   --os windows \
   --winrm-user Administrator \
   --winrm-password "s3cret" \
   --winrm-https \
-  --out bundle.tgz
-```
-
-### 3. Collect from localhost (testing / development)
-
-```bash
-xcprobe collect \
-  --target localhost \
-  --os linux \
-  --mode local-ephemeral \
   --out bundle.tgz
 ```
 
@@ -131,16 +126,6 @@ The generated `./artifacts/` directory will contain:
 - **packplan.json** full analysis plan with evidence and confidence scores
 - **README.md** documentation for the generated artifacts
 
-### 5. Run E2E tests
-
-```bash
-# Run all scenarios
-cargo run --bin e2e-runner -- run-all --scenarios-dir tests/scenarios
-
-# Run a single scenario
-cargo run --bin e2e-runner -- run --scenario tests/scenarios/scenario_a_basic_multi_proc_host
-```
-
 ## CLI Reference
 
 ```
@@ -160,10 +145,10 @@ Commands:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--target <HOST>` | Target host (IP, hostname, or `localhost`) | *required* |
-| `--os <OS>` | Target OS: `linux` or `windows` | *required* |
 | `-o, --out <PATH>` | Output bundle path (`.tgz`) | *required* |
-| `--mode <MODE>` | `remote` or `local-ephemeral` | `remote` |
+| `--mode <MODE>` | `local-ephemeral` or `remote` | `local-ephemeral` |
+| `--target <HOST>` | Target host (IP or hostname). Required for remote mode. | auto (`localhost`) |
+| `--os <OS>` | Target OS: `linux` or `windows`. Required for remote mode. | auto-detected |
 | `--timeout <SECS>` | Collection timeout | `300` |
 | `--ssh-user <USER>` | SSH username | |
 | `--ssh-key <PATH>` | SSH private key | |
@@ -207,17 +192,52 @@ Commands:
 | Secrets | Redacted before writing to bundle |
 | Analysis | Performed offline after collection |
 
-## Project structure
+## Development
+
+### Build from source
+
+```bash
+cargo build --release
+# Binary: target/release/xcprobe
+```
+
+### Run E2E tests
+
+E2E tests require Docker and use simulated host containers.
+
+```bash
+# Run all scenarios
+cargo run --bin e2e-runner -- run-all --scenarios-dir tests/scenarios
+
+# Run a single scenario
+cargo run --bin e2e-runner -- run --scenario tests/scenarios/scenario_a_basic_multi_proc_host
+```
+
+### Publish a release
+
+Pushing a version tag triggers the CI pipeline that builds binaries for all platforms and creates a GitHub Release automatically.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This will:
+1. Build `xcprobe` for Linux (x86_64 glibc, x86_64 musl, ARM64) and Windows (x86_64)
+2. Package each binary as `.tar.gz` (Linux) or `.zip` (Windows)
+3. Create a GitHub Release with auto-generated release notes and all binaries attached
+
+### Project structure
 
 ```
 xcprobe/
 ├── crates/
-│   ├── xcprobe/          # Unified CLI binary (collect + analyze)
-│   ├── probe-cli/        # Collection logic
-│   ├── analyzer/         # Analysis, scoring, clustering, Docker generation
+│   ├── xcprobe/          # CLI binary (collect + analyze)
+│   ├── probe-cli/        # Collection logic (library)
+│   ├── analyzer/         # Analysis, scoring, clustering, Docker generation (library)
 │   ├── bundle-schema/    # Bundle and pack-plan format definitions
 │   ├── redaction/        # Secret detection and masking
-│   ├── e2e-runner/       # E2E test runner
+│   ├── e2e-runner/       # E2E test runner (dev only)
 │   └── common/           # Shared utilities
 ├── tests/scenarios/      # E2E test scenarios
 ├── docs/                 # Documentation
