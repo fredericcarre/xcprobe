@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tokio::time::Duration;
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 /// Configuration for running a scenario.
 #[derive(Debug, Clone)]
@@ -212,6 +212,30 @@ async fn run_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf
         anyhow::bail!("Failed to chmod xcprobe: {}", stderr);
     }
 
+    // Verify the binary can execute (check for missing shared libraries)
+    let ldd_check = Command::new("docker")
+        .args([
+            "compose",
+            "-f",
+            compose_file,
+            "exec",
+            "-T",
+            "host-sim",
+            "sh",
+            "-c",
+            "ldd /xcprobe 2>&1 || echo 'ldd not available'",
+        ])
+        .current_dir(scenario_path)
+        .output();
+    if let Ok(ldd_out) = ldd_check {
+        let ldd_stdout = String::from_utf8_lossy(&ldd_out.stdout);
+        if ldd_stdout.contains("not found") {
+            warn!("Missing shared libraries in container:\n{}", ldd_stdout);
+        } else {
+            debug!("Binary library check:\n{}", ldd_stdout);
+        }
+    }
+
     // Run xcprobe collect inside the host-sim container
     let output = Command::new("docker")
         .args([
@@ -223,6 +247,7 @@ async fn run_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf
             "host-sim",
             "/xcprobe",
             "collect",
+            "--verbose",
             "--target",
             "localhost",
             "--os",
@@ -237,8 +262,16 @@ async fn run_collect(scenario_path: &Path, bundle_path: &Path) -> Result<PathBuf
         .context("Failed to run xcprobe collect")?;
 
     if !output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("xcprobe collect failed: {}", stderr);
+        if !stdout.is_empty() {
+            warn!("xcprobe collect stdout:\n{}", stdout);
+        }
+        anyhow::bail!(
+            "xcprobe collect failed (exit {}): {}",
+            output.status,
+            stderr
+        );
     }
 
     // Copy bundle out of container
@@ -271,16 +304,25 @@ async fn run_analyze(bundle_path: &Path, plan_path: &Path) -> Result<PathBuf> {
         find_binary("xcprobe").context("xcprobe binary not found in PATH or target/ directory")?;
 
     let output = Command::new(&xcprobe_path)
-        .args(["analyze", "--bundle"])
+        .args(["analyze", "--verbose", "--bundle"])
         .arg(bundle_path)
         .args(["--out"])
         .arg(output_dir)
+        .args(["--min-confidence", "0.3"])
         .output()
         .context("Failed to run xcprobe analyze")?;
 
     if !output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("xcprobe analyze failed: {}", stderr);
+        if !stdout.is_empty() {
+            warn!("xcprobe analyze stdout:\n{}", stdout);
+        }
+        anyhow::bail!(
+            "xcprobe analyze failed (exit {}): {}",
+            output.status,
+            stderr
+        );
     }
 
     Ok(plan_path.to_path_buf())
