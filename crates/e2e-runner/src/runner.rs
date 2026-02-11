@@ -35,21 +35,35 @@ pub struct RunResult {
 pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     let start = std::time::Instant::now();
 
+    // Resolve paths to absolute so they work correctly when docker compose
+    // commands are run with current_dir set to the scenario directory.
+    let cwd = std::env::current_dir().context("Failed to get current directory")?;
+    let scenario_path = if config.scenario_path.is_relative() {
+        cwd.join(&config.scenario_path)
+    } else {
+        config.scenario_path.clone()
+    };
+    let artifacts_path = if config.artifacts_path.is_relative() {
+        cwd.join(&config.artifacts_path)
+    } else {
+        config.artifacts_path.clone()
+    };
+
     // Load truth file
-    let truth_path = config.scenario_path.join("truth.json");
+    let truth_path = scenario_path.join("truth.json");
     let truth = load_truth(&truth_path).context("Failed to load truth.json")?;
 
     let scenario_name = truth.name.clone();
     info!("Running scenario: {}", scenario_name);
 
     // Create artifacts directory
-    std::fs::create_dir_all(&config.artifacts_path)?;
+    std::fs::create_dir_all(&artifacts_path)?;
 
     // Step 1: Start docker-compose
     info!("Starting docker-compose...");
-    let compose_file = if config.scenario_path.join("compose.yaml").exists() {
+    let compose_file = if scenario_path.join("compose.yaml").exists() {
         "compose.yaml"
-    } else if config.scenario_path.join("docker-compose.yaml").exists() {
+    } else if scenario_path.join("docker-compose.yaml").exists() {
         "docker-compose.yaml"
     } else {
         anyhow::bail!("No compose.yaml or docker-compose.yaml found in scenario");
@@ -65,7 +79,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
             "--build",
             "--wait",
         ])
-        .current_dir(&config.scenario_path)
+        .current_dir(&scenario_path)
         .output()
         .context("Failed to run docker compose up")?;
 
@@ -81,9 +95,9 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
 
     // Step 3: Run xcprobe collect
     info!("Running xcprobe collect...");
-    let bundle_path = config.artifacts_path.join("bundle.tgz");
+    let bundle_path = artifacts_path.join("bundle.tgz");
 
-    let collect_result = run_collect(&config.scenario_path, &bundle_path).await;
+    let collect_result = run_collect(&scenario_path, &bundle_path).await;
 
     let bundle_path = match collect_result {
         Ok(path) => Some(path),
@@ -96,7 +110,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     // Step 4: Run xcprobe analyze
     let plan_path = if let Some(ref bundle) = bundle_path {
         info!("Running xcprobe analyze...");
-        let plan_path = config.artifacts_path.join("packplan.json");
+        let plan_path = artifacts_path.join("packplan.json");
         let analyze_result = run_analyze(bundle, &plan_path).await;
 
         match analyze_result {
@@ -132,7 +146,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
         info!("Stopping docker-compose...");
         let _ = Command::new("docker")
             .args(["compose", "-f", compose_file, "down", "-v"])
-            .current_dir(&config.scenario_path)
+            .current_dir(&scenario_path)
             .output();
     }
 
@@ -140,7 +154,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
     let passed = failures.is_empty();
     if !passed {
         info!("Test failed, archiving artifacts...");
-        archive_artifacts(config, &bundle_path, &plan_path)?;
+        archive_artifacts(&artifacts_path, &bundle_path, &plan_path)?;
     }
 
     let duration = start.elapsed();
@@ -156,7 +170,7 @@ pub async fn run_scenario(config: &RunConfig) -> Result<RunResult> {
         duration_seconds: duration.as_secs_f64(),
     };
 
-    let report_path = config.artifacts_path.join("report.json");
+    let report_path = artifacts_path.join("report.json");
     let report_json = serde_json::to_string_pretty(&result)?;
     std::fs::write(&report_path, report_json)?;
 
@@ -352,11 +366,11 @@ fn find_binary(name: &str) -> Result<PathBuf> {
 }
 
 fn archive_artifacts(
-    config: &RunConfig,
+    artifacts_path: &Path,
     bundle_path: &Option<PathBuf>,
     plan_path: &Option<PathBuf>,
 ) -> Result<()> {
-    let archive_dir = config.artifacts_path.join("failed_artifacts");
+    let archive_dir = artifacts_path.join("failed_artifacts");
     std::fs::create_dir_all(&archive_dir)?;
 
     if let Some(bundle) = bundle_path {
