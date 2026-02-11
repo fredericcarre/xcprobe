@@ -15,7 +15,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["XCProbe Team"]
 license = "MIT"
-repository = "https://github.com/example/xcprobe"
+repository = "https://github.com/fredericcarre/xcprobe"
 
 [workspace.dependencies]
 # Async runtime

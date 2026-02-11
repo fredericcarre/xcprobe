@@ -45,13 +45,6 @@ chmod +x xcprobe
 sudo mv xcprobe /usr/local/bin/
 ```
 
-### Build from source
-
-```bash
-cargo build --release
-# Binary is at target/release/xcprobe
-```
-
 ## Usage
 
 ### 1. Collect from a remote Linux host (SSH)
@@ -131,16 +124,6 @@ The generated `./artifacts/` directory will contain:
 - **packplan.json** full analysis plan with evidence and confidence scores
 - **README.md** documentation for the generated artifacts
 
-### 5. Run E2E tests
-
-```bash
-# Run all scenarios
-cargo run --bin e2e-runner -- run-all --scenarios-dir tests/scenarios
-
-# Run a single scenario
-cargo run --bin e2e-runner -- run --scenario tests/scenarios/scenario_a_basic_multi_proc_host
-```
-
 ## CLI Reference
 
 ```
@@ -207,17 +190,38 @@ Commands:
 | Secrets | Redacted before writing to bundle |
 | Analysis | Performed offline after collection |
 
-## Project structure
+## Development
+
+### Build from source
+
+```bash
+cargo build --release
+# Binary: target/release/xcprobe
+```
+
+### Run E2E tests
+
+E2E tests require Docker and use simulated host containers.
+
+```bash
+# Run all scenarios
+cargo run --bin e2e-runner -- run-all --scenarios-dir tests/scenarios
+
+# Run a single scenario
+cargo run --bin e2e-runner -- run --scenario tests/scenarios/scenario_a_basic_multi_proc_host
+```
+
+### Project structure
 
 ```
 xcprobe/
 ├── crates/
-│   ├── xcprobe/          # Unified CLI binary (collect + analyze)
-│   ├── probe-cli/        # Collection logic
-│   ├── analyzer/         # Analysis, scoring, clustering, Docker generation
+│   ├── xcprobe/          # CLI binary (collect + analyze)
+│   ├── probe-cli/        # Collection logic (library)
+│   ├── analyzer/         # Analysis, scoring, clustering, Docker generation (library)
 │   ├── bundle-schema/    # Bundle and pack-plan format definitions
 │   ├── redaction/        # Secret detection and masking
-│   ├── e2e-runner/       # E2E test runner
+│   ├── e2e-runner/       # E2E test runner (dev only)
 │   └── common/           # Shared utilities
 ├── tests/scenarios/      # E2E test scenarios
 ├── docs/                 # Documentation
