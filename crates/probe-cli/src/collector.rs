@@ -307,16 +307,14 @@ impl Collector {
 
         if self.config.os_type.is_windows() {
             // Windows: parse full details directly from the list output (single query)
-            let mut services =
-                parsers::parse_windows_services_from_list(&result.stdout)?;
+            let mut services = parsers::parse_windows_services_from_list(&result.stdout)?;
             for service in &mut services {
                 service.evidence_ref = Some(result.evidence_ref.clone());
             }
             manifest.services.extend(services);
         } else {
             // Linux: list names then query each service for details + unit files
-            let service_names =
-                parsers::parse_service_list(&result.stdout, self.config.os_type)?;
+            let service_names = parsers::parse_service_list(&result.stdout, self.config.os_type)?;
 
             for name in service_names {
                 if let Some(show_cmd) = commands.service_show_cmd(&name) {
@@ -324,10 +322,9 @@ impl Collector {
                         .execute_and_record(executor, &show_cmd, "service", audit_log, evidence)
                         .await
                     {
-                        if let Ok(mut service) = parsers::parse_service_details(
-                            &show_result.stdout,
-                            self.config.os_type,
-                        ) {
+                        if let Ok(mut service) =
+                            parsers::parse_service_details(&show_result.stdout, self.config.os_type)
+                        {
                             service.evidence_ref = Some(show_result.evidence_ref.clone());
 
                             if let Some(cat_cmd) = commands.service_cat_cmd(&name) {
@@ -337,8 +334,7 @@ impl Collector {
                                     )
                                     .await
                                 {
-                                    let unit_info =
-                                        parsers::parse_systemd_unit(&cat_result.stdout);
+                                    let unit_info = parsers::parse_systemd_unit(&cat_result.stdout);
                                     if let Some(exec) = unit_info.exec_start {
                                         service.exec_start = Some(exec);
                                     }

@@ -46,17 +46,18 @@ impl Executor for LocalExecutor {
         debug!("Local exec: {}", command);
 
         let cmd = command.to_string();
-        let result = timeout(COMMAND_TIMEOUT, tokio::task::spawn_blocking(move || {
-            if cfg!(target_os = "windows") {
-                Command::new("powershell")
-                    .args(["-NoProfile", "-NonInteractive", "-Command", &cmd])
-                    .output()
-            } else {
-                Command::new("sh")
-                    .args(["-c", &cmd])
-                    .output()
-            }
-        }))
+        let result = timeout(
+            COMMAND_TIMEOUT,
+            tokio::task::spawn_blocking(move || {
+                if cfg!(target_os = "windows") {
+                    Command::new("powershell")
+                        .args(["-NoProfile", "-NonInteractive", "-Command", &cmd])
+                        .output()
+                } else {
+                    Command::new("sh").args(["-c", &cmd]).output()
+                }
+            }),
+        )
         .await;
 
         let output = match result {
