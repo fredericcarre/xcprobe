@@ -300,27 +300,33 @@ impl Collector {
         audit_log: &mut AuditLog,
         evidence: &mut HashMap<String, Evidence>,
     ) -> Result<()> {
-        // List services
         let list_cmd = commands.service_list_cmd();
         let result = self
             .execute_and_record(executor, list_cmd, "service", audit_log, evidence)
             .await?;
-        let service_names = parsers::parse_service_list(&result.stdout, self.config.os_type)?;
 
-        // Get details for each service
-        for name in service_names {
-            if let Some(show_cmd) = commands.service_show_cmd(&name) {
-                if let Ok(show_result) = self
-                    .execute_and_record(executor, &show_cmd, "service", audit_log, evidence)
-                    .await
-                {
-                    if let Ok(mut service) =
-                        parsers::parse_service_details(&show_result.stdout, self.config.os_type)
+        if self.config.os_type.is_windows() {
+            // Windows: parse full details directly from the list output (single query)
+            let mut services = parsers::parse_windows_services_from_list(&result.stdout)?;
+            for service in &mut services {
+                service.evidence_ref = Some(result.evidence_ref.clone());
+            }
+            manifest.services.extend(services);
+        } else {
+            // Linux: list names then query each service for details + unit files
+            let service_names = parsers::parse_service_list(&result.stdout, self.config.os_type)?;
+
+            for name in service_names {
+                if let Some(show_cmd) = commands.service_show_cmd(&name) {
+                    if let Ok(show_result) = self
+                        .execute_and_record(executor, &show_cmd, "service", audit_log, evidence)
+                        .await
                     {
-                        service.evidence_ref = Some(show_result.evidence_ref.clone());
+                        if let Ok(mut service) =
+                            parsers::parse_service_details(&show_result.stdout, self.config.os_type)
+                        {
+                            service.evidence_ref = Some(show_result.evidence_ref.clone());
 
-                        // Try to get unit file content for Linux
-                        if self.config.os_type.is_linux() {
                             if let Some(cat_cmd) = commands.service_cat_cmd(&name) {
                                 if let Ok(cat_result) = self
                                     .execute_and_record(
@@ -328,7 +334,6 @@ impl Collector {
                                     )
                                     .await
                                 {
-                                    // Parse unit file for additional info
                                     let unit_info = parsers::parse_systemd_unit(&cat_result.stdout);
                                     if let Some(exec) = unit_info.exec_start {
                                         service.exec_start = Some(exec);
@@ -341,9 +346,9 @@ impl Collector {
                                         .extend(unit_info.environment_files);
                                 }
                             }
-                        }
 
-                        manifest.services.push(service);
+                            manifest.services.push(service);
+                        }
                     }
                 }
             }

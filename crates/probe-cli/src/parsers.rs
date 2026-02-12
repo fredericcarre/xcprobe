@@ -131,6 +131,49 @@ fn parse_windows_service_list(output: &str) -> Result<Vec<String>> {
     Ok(services)
 }
 
+/// Parse full service list with details (Windows only).
+/// The Windows list command already returns all fields we need, so we can
+/// skip the per-service queries entirely.
+pub fn parse_windows_services_from_list(output: &str) -> Result<Vec<ServiceInfo>> {
+    let json: serde_json::Value =
+        serde_json::from_str(output).unwrap_or(serde_json::Value::Array(vec![]));
+
+    let mut services = Vec::new();
+
+    if let Some(array) = json.as_array() {
+        for item in array {
+            let name = item["Name"].as_str().unwrap_or("").to_string();
+            if name.is_empty() {
+                continue;
+            }
+            services.push(ServiceInfo {
+                name,
+                display_name: item["DisplayName"].as_str().map(|s| s.to_string()),
+                description: item["Description"].as_str().map(|s| s.to_string()),
+                state: item["State"].as_str().unwrap_or("").to_string(),
+                sub_state: None,
+                start_mode: item["StartMode"].as_str().map(|s| s.to_string()),
+                exec_start: item["PathName"].as_str().map(|s| s.to_string()),
+                exec_start_pre: vec![],
+                exec_start_post: vec![],
+                exec_stop: None,
+                working_directory: None,
+                user: None,
+                group: None,
+                environment: HashMap::new(),
+                environment_files: vec![],
+                unit_file_path: None,
+                dependencies: vec![],
+                wanted_by: vec![],
+                main_pid: None,
+                evidence_ref: None,
+            });
+        }
+    }
+
+    Ok(services)
+}
+
 /// Parse service details.
 pub fn parse_service_details(output: &str, os_type: OsType) -> Result<ServiceInfo> {
     match os_type {
