@@ -7,6 +7,8 @@ use std::io::Read;
 use std::net::TcpStream;
 use std::path::Path;
 use std::process::Command;
+use std::time::Duration;
+use tokio::time::timeout;
 use tracing::{debug, warn};
 
 /// Trait for command execution.
@@ -19,6 +21,9 @@ pub trait Executor: Send + Sync {
     #[allow(dead_code)]
     fn is_connected(&self) -> bool;
 }
+
+/// Per-command timeout.
+const COMMAND_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Local executor for ephemeral testing.
 pub struct LocalExecutor;
@@ -40,16 +45,28 @@ impl Executor for LocalExecutor {
     async fn execute(&self, command: &str) -> Result<(Option<i32>, String, String)> {
         debug!("Local exec: {}", command);
 
-        let output = if cfg!(target_os = "windows") {
-            Command::new("powershell")
-                .args(["-NoProfile", "-NonInteractive", "-Command", command])
-                .output()
-                .context("Failed to execute command")?
-        } else {
-            Command::new("sh")
-                .args(["-c", command])
-                .output()
-                .context("Failed to execute command")?
+        let cmd = command.to_string();
+        let result = timeout(COMMAND_TIMEOUT, tokio::task::spawn_blocking(move || {
+            if cfg!(target_os = "windows") {
+                Command::new("powershell")
+                    .args(["-NoProfile", "-NonInteractive", "-Command", &cmd])
+                    .output()
+            } else {
+                Command::new("sh")
+                    .args(["-c", &cmd])
+                    .output()
+            }
+        }))
+        .await;
+
+        let output = match result {
+            Ok(join_result) => join_result
+                .context("Command task panicked")?
+                .context("Failed to execute command")?,
+            Err(_) => {
+                warn!("Command timed out after {:?}: {}", COMMAND_TIMEOUT, command);
+                anyhow::bail!("Command timed out after {:?}: {}", COMMAND_TIMEOUT, command);
+            }
         };
 
         let stdout = String::from_utf8_lossy(&output.stdout).to_string();
