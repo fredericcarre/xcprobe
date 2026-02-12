@@ -41,8 +41,8 @@ impl Executor for LocalExecutor {
         debug!("Local exec: {}", command);
 
         let output = if cfg!(target_os = "windows") {
-            Command::new("cmd")
-                .args(["/C", command])
+            Command::new("powershell")
+                .args(["-NoProfile", "-NonInteractive", "-Command", command])
                 .output()
                 .context("Failed to execute command")?
         } else {
